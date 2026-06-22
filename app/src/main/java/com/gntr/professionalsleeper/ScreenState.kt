@@ -1,5 +1,5 @@
 package com.gntr.professionalsleeper
 
 enum class ScreenState {
-    SCHEDULE, SETTINGS
+    AUTH, SCHEDULE, SETTINGS
 }
