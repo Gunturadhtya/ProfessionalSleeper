@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/hanken_grotesk</item>
+        <item>@font/hanken_grotesk_bold</item>
+        <item>@font/hanken_grotesk_semibold</item>
+        <item>@font/inter</item>
+        <item>@font/jetbrains_mono</item>
+    </array>
+</resources>

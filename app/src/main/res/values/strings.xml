@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">ProfessionalSleeper</string>
+
+    <!-- AlarmService UI -->
+    <string name="notification_title">Time to Wake Up!</string>
+    <string name="notification_content">Your polyphasic sleep session is complete.</string>
+    <string name="notification_channel_name">Sleep Alarms</string>
+    <string name="notification_channel_description">Channel for sleep schedules</string>
+
+    <!-- RingingActivity UI -->
+    <string name="ringing_title">Wake Up!</string>
+    <string name="ringing_subtitle">Your polyphasic session is complete.</string>
+    <string name="ringing_button_dismiss">Turn Off &amp; Work</string>
+</resources>

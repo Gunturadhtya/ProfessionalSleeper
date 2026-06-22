@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">ProfessionalSleeper</string>
+
+    <!-- AlarmService UI -->
+    <string name="notification_title">Waktunya Bangun!</string>
+    <string name="notification_content">Sesi tidur polyphasic Anda telah selesai.</string>
+    <string name="notification_channel_name">Alarm Tidur</string>
+    <string name="notification_channel_description">Saluran untuk jadwal tidur</string>
+
+    <!-- RingingActivity UI -->
+    <string name="ringing_title">Bangun!</string>
+    <string name="ringing_subtitle">Sesi polyphasic Anda telah selesai.</string>
+    <string name="ringing_button_dismiss">Matikan &amp; Kerja</string>
+</resources>
