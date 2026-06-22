@@ -1,5 +1,7 @@
 package com.gntr.professionalsleeper.presentation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
@@ -8,12 +10,17 @@ import com.gntr.professionalsleeper.data.local.entity.SessionType
 import com.gntr.professionalsleeper.data.local.entity.SleepSession
 import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import javax.inject.Inject
 
-class MainViewModel(
+@HiltViewModel
+class MainViewModel @Inject constructor(
     private val repository: ISleepSessionRepository,
     private val alarmScheduler: IAlarmScheduler,
     private val prefsRepo: AppPreferencesRepository
@@ -28,11 +35,12 @@ class MainViewModel(
     val targetAppPackage: StateFlow<String?> = prefsRepo.targetAppPackageFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun scheduleNewSession(startTime: Long, endTime: Long, type: SessionType) {
         viewModelScope.launch {
             val session = SleepSession(
-                startTime = startTime,
-                endTime = endTime,
+                startTime = Instant.ofEpochMilli(startTime).atZone(ZoneId.systemDefault()),
+                endTime = Instant.ofEpochMilli(endTime).atZone(ZoneId.systemDefault()),
                 type = type,
                 status = SessionStatus.SCHEDULED
             )
@@ -47,12 +55,13 @@ class MainViewModel(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun triggerDebugAlarm() {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
             val debugSession = SleepSession(
-                startTime = now,
-                endTime = now + 5000,
+                startTime = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()),
+                endTime = Instant.ofEpochMilli(now + 5000).atZone(ZoneId.systemDefault()),
                 type = SessionType.NAP,
                 status = SessionStatus.SCHEDULED
             )
