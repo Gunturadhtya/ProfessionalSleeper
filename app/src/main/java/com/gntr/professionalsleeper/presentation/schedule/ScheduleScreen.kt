@@ -1,5 +1,7 @@
 package com.gntr.professionalsleeper.presentation.schedule
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,9 +27,11 @@ import com.gntr.professionalsleeper.ui.theme.CoreSleepColor
 import com.gntr.professionalsleeper.ui.theme.JetBrainsMono
 import com.gntr.professionalsleeper.ui.theme.NapSleepColor
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScheduleScreen(
@@ -81,11 +85,12 @@ fun ScheduleScreen(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SessionCard(session: SleepSession) {
-    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    val startStr = timeFormat.format(Date(session.startTime))
-    val endStr = timeFormat.format(Date(session.endTime))
+    val timeFormat = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
+    val startStr = session.startTime.format(timeFormat)
+    val endStr = session.endTime.format(timeFormat)
 
     val accentColor = if (session.type == SessionType.CORE) CoreSleepColor else NapSleepColor
 
