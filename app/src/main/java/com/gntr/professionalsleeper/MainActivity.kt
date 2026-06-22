@@ -11,47 +11,40 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.room.Room
-import com.gntr.professionalsleeper.data.local.AppDatabase
-import com.gntr.professionalsleeper.data.local.datastore.dataStore
-import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
-import com.gntr.professionalsleeper.data.repository.SleepSessionRepositoryImpl
-import com.gntr.professionalsleeper.framework.alarm.AlarmSchedulerImpl
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.gntr.professionalsleeper.framework.calendar.CalendarSyncWorker
 import com.gntr.professionalsleeper.presentation.MainViewModel
+import com.gntr.professionalsleeper.presentation.auth.AuthScreen
+import com.gntr.professionalsleeper.presentation.auth.AuthViewModel
 import com.gntr.professionalsleeper.presentation.schedule.ScheduleScreen
 import com.gntr.professionalsleeper.presentation.settings.SettingsScreen
 import com.gntr.professionalsleeper.ui.theme.ProfessionalSleeperTheme
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val db = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "sleeper_db").build()
-        val repository = SleepSessionRepositoryImpl(db.sleepSessionDao())
-        val alarmScheduler = AlarmSchedulerImpl(applicationContext)
-        val prefsRepo = AppPreferencesRepository(applicationContext.dataStore)
-
         Timber.plant(Timber.DebugTree())
-
-        val factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return MainViewModel(repository, alarmScheduler, prefsRepo) as T
-            }
-        }
 
         setContent {
             ProfessionalSleeperTheme {
                 RequestEssentialPermissions(context = this)
 
-                val viewModel: MainViewModel = viewModel(factory = factory)
-                var currentScreen by remember { mutableStateOf(ScreenState.SCHEDULE) }
+                val viewModel: MainViewModel = hiltViewModel()
+                var currentScreen by remember { mutableStateOf(ScreenState.AUTH) }
 
                 Crossfade(targetState = currentScreen, label = "ScreenTransition") { screen ->
                     when (screen) {
@@ -67,6 +60,16 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = { currentScreen = ScreenState.SCHEDULE }
                             )
                         }
+                        ScreenState.AUTH -> {
+                            val authViewModel: AuthViewModel = hiltViewModel()
+                            AuthScreen(
+                                viewModel = authViewModel,
+                                onAuthSuccess = { userEmail ->
+                                    enqueueCalendarSyncEngine(this@MainActivity, userEmail)
+                                    currentScreen = ScreenState.SCHEDULE
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -74,13 +77,35 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+private fun enqueueCalendarSyncEngine(context: Context, accountEmail: String) {
+    Timber.d("Configuring WorkManager constraints for background calendar synchronization.")
+
+    val syncConstraints = Constraints.Builder()
+        .setRequiredNetworkType(NetworkType.CONNECTED)
+        .build()
+
+    val periodicSyncRequest = PeriodicWorkRequestBuilder<CalendarSyncWorker>(
+        1, TimeUnit.HOURS,
+        15, TimeUnit.MINUTES
+    )
+        .setConstraints(syncConstraints)
+        .setInputData(workDataOf("account_email" to accountEmail))
+        .build()
+
+    WorkManager.getInstance(context.applicationContext).enqueueUniquePeriodicWork(
+        "UniqueProfessionalSleeperCalendarSync",
+        ExistingPeriodicWorkPolicy.KEEP,
+        periodicSyncRequest
+    )
+    Timber.i("Unique periodic synchronization request successfully committed to WorkManager queue.")
+}
+
 @Composable
 fun RequestEssentialPermissions(context: Context) {
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) {
-
-    }
+    ) {}
 
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
