@@ -11,4 +11,6 @@ interface ISleepSessionRepository {
     suspend fun getSessionsSnapshotForDay(startOfDay: Long, endOfDay: Long): List<SleepSession>
     suspend fun getSessionById(id: Int): SleepSession?
     suspend fun clearAllSessions(): List<SleepSession>
+    fun getSessionsForTimeframe(startEpochMilli: Long, endEpochMilli: Long): Flow<List<SleepSession>>
+    suspend fun getSessionsSnapshotForTimeframe(startEpochMilli: Long, endEpochMilli: Long): List<SleepSession>
 }

@@ -93,4 +93,20 @@ class SleepSessionRepositoryImpl(
         dao.deleteAllSessions()
         return allSessions
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun getSessionsForTimeframe(startEpochMilli: Long, endEpochMilli: Long): Flow<List<SleepSession>> {
+        return dao.getAllSessions().map { sessions ->
+            sessions.filter {
+                it.startTime.toInstant().toEpochMilli() in startEpochMilli..endEpochMilli
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override suspend fun getSessionsSnapshotForTimeframe(startEpochMilli: Long, endEpochMilli: Long): List<SleepSession> {
+        return dao.getAllSessionsSnapshot().filter { session ->
+            session.startTime.toInstant().toEpochMilli() in startEpochMilli..endEpochMilli
+        }
+    }
 }
