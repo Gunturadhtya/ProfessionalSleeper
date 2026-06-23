@@ -22,7 +22,6 @@ class SecureTokenManager(context: Context) {
         id: String,
         email: String,
         idToken: String,
-        serverAuthCode: String?,
         displayName: String? = null,
         photoUrl: String? = null
     ) {
@@ -30,9 +29,9 @@ class SecureTokenManager(context: Context) {
             putString("user_id", id)
             putString("user_email", email)
             putString("id_token", idToken)
-            serverAuthCode?.let { putString("server_auth_code", it) }
             displayName?.let { putString("display_name", it) }
             photoUrl?.let { putString("photo_url", it) }
+            remove("server_auth_code")
             apply()
         }
     }
@@ -42,8 +41,6 @@ class SecureTokenManager(context: Context) {
     fun getUserEmail(): String? = sharedPreferences.getString("user_email", null)
 
     fun getIdToken(): String? = sharedPreferences.getString("id_token", null)
-
-    fun getServerAuthCode(): String? = sharedPreferences.getString("server_auth_code", null)
 
     fun getDisplayName(): String? = sharedPreferences.getString("display_name", null)
 

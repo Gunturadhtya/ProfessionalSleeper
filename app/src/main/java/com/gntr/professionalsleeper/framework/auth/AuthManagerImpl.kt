@@ -79,7 +79,6 @@ class AuthManagerImpl(
                 id = googleIdCredential.id,
                 email = googleIdCredential.id,
                 idToken = googleIdCredential.idToken,
-                serverAuthCode = authResult.serverAuthCode,
                 displayName = googleIdCredential.displayName,
                 photoUrl = googleIdCredential.profilePictureUri?.toString()
             )
@@ -102,7 +101,6 @@ class AuthManagerImpl(
 
     override suspend fun getSignedInAccount(): AuthAccount? = withContext(Dispatchers.IO) {
         val idToken = secureTokenManager.getIdToken()
-        val serverAuthCode = secureTokenManager.getServerAuthCode()
         val userId = secureTokenManager.getUserId()
         val userEmail = secureTokenManager.getUserEmail()
         val displayName = secureTokenManager.getDisplayName()
@@ -122,7 +120,6 @@ class AuthManagerImpl(
             id = userId,
             email = userEmail,
             idToken = idToken,
-            serverAuthCode = serverAuthCode,
             displayName = displayName,
             photoUrl = photoUrl
         )
