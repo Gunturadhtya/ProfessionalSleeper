@@ -79,7 +79,9 @@ class AuthManagerImpl(
                 id = googleIdCredential.id,
                 email = googleIdCredential.id,
                 idToken = googleIdCredential.idToken,
-                serverAuthCode = authResult.serverAuthCode
+                serverAuthCode = authResult.serverAuthCode,
+                displayName = googleIdCredential.displayName,
+                photoUrl = googleIdCredential.profilePictureUri?.toString()
             )
 
             Result.success(
@@ -87,7 +89,9 @@ class AuthManagerImpl(
                     id = googleIdCredential.id,
                     email = googleIdCredential.id,
                     idToken = googleIdCredential.idToken,
-                    serverAuthCode = authResult.serverAuthCode
+                    serverAuthCode = authResult.serverAuthCode,
+                    displayName = googleIdCredential.displayName,
+                    photoUrl = googleIdCredential.profilePictureUri?.toString()
                 )
             )
         } catch (e: Exception) {
@@ -101,6 +105,8 @@ class AuthManagerImpl(
         val serverAuthCode = secureTokenManager.getServerAuthCode()
         val userId = secureTokenManager.getUserId()
         val userEmail = secureTokenManager.getUserEmail()
+        val displayName = secureTokenManager.getDisplayName()
+        val photoUrl = secureTokenManager.getPhotoUrl()
 
         if (idToken.isNullOrEmpty() || userId.isNullOrEmpty() || userEmail.isNullOrEmpty()) {
             return@withContext null
@@ -116,7 +122,9 @@ class AuthManagerImpl(
             id = userId,
             email = userEmail,
             idToken = idToken,
-            serverAuthCode = serverAuthCode
+            serverAuthCode = serverAuthCode,
+            displayName = displayName,
+            photoUrl = photoUrl
         )
     }
 

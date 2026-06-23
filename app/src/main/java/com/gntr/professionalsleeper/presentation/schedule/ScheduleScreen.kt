@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
@@ -45,6 +46,7 @@ import java.util.Locale
 fun ScheduleScreen(
     viewModel: MainViewModel,
     onNavigateToSettings: () -> Unit,
+    onNavigateToProfile: () -> Unit,
     onResetComplete: () -> Unit
 ) {
     val sessions by viewModel.todaySessions.collectAsStateWithLifecycle()
@@ -84,6 +86,9 @@ fun ScheduleScreen(
                     }
                     IconButton(onClick = { showResetDialog = true }) {
                         Icon(Icons.Default.RestartAlt, contentDescription = "Reset Sleep Session")
+                    }
+                    IconButton(onClick = onNavigateToProfile) {
+                        Icon(Icons.Default.AccountCircle, contentDescription = "Profile")
                     }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")

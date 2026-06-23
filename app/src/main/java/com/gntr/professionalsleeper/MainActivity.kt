@@ -34,6 +34,7 @@ import com.gntr.professionalsleeper.framework.calendar.CalendarSyncWorker
 import com.gntr.professionalsleeper.presentation.MainViewModel
 import com.gntr.professionalsleeper.presentation.auth.AuthScreen
 import com.gntr.professionalsleeper.presentation.auth.AuthViewModel
+import com.gntr.professionalsleeper.presentation.profile.ProfileScreen
 import com.gntr.professionalsleeper.presentation.setup.OnboardingScreen
 import com.gntr.professionalsleeper.presentation.setup.SetupViewModel
 import com.gntr.professionalsleeper.presentation.schedule.ScheduleScreen
@@ -91,15 +92,18 @@ class MainActivity : ComponentActivity() {
                                 } else {
                                     Timber.i("User opted for offline execution. Bypassing Calendar Sync Engine.")
                                 }
+                                val cameFromProfile = navController.previousBackStackEntry
+                                    ?.destination?.route == Route.Profile.route
 
-                                val destination = if (isSetupComplete) {
-                                    Route.Schedule.route
-                                } else {
-                                    Route.Setup.route
+                                val destination = when {
+                                    cameFromProfile -> Route.Profile.route
+                                    isSetupComplete -> Route.Schedule.route
+                                    else -> Route.Setup.route
                                 }
 
                                 navController.navigate(destination) {
                                     popUpTo(Route.Auth.route) { inclusive = true }
+                                    launchSingleTop = true
                                 }
                             }
                         )
@@ -112,10 +116,27 @@ class MainActivity : ComponentActivity() {
                             onNavigateToSettings = {
                                 navController.navigate(Route.Settings.route)
                             },
+                            onNavigateToProfile = {
+                                navController.navigate(Route.Profile.route)
+                            },
                             onResetComplete = {
                                 navController.navigate(Route.Setup.route) {
                                     popUpTo(Route.Schedule.route) { inclusive = true }
                                 }
+                            }
+                        )
+                    }
+
+                    composable(Route.Profile.route) {
+                        ProfileScreen(
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            onLoginRequested = {
+                                navController.navigate(Route.Auth.route)
+                            },
+                            onLogoutRequest = {
+                                navController.navigate(Route.Schedule.route)
                             }
                         )
                     }

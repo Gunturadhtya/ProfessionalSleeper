@@ -18,12 +18,21 @@ class SecureTokenManager(context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    fun saveTokens(id: String, email: String, idToken: String, serverAuthCode: String?) {
+    fun saveTokens(
+        id: String,
+        email: String,
+        idToken: String,
+        serverAuthCode: String?,
+        displayName: String? = null,
+        photoUrl: String? = null
+    ) {
         sharedPreferences.edit().apply {
             putString("user_id", id)
             putString("user_email", email)
             putString("id_token", idToken)
             serverAuthCode?.let { putString("server_auth_code", it) }
+            displayName?.let { putString("display_name", it) }
+            photoUrl?.let { putString("photo_url", it) }
             apply()
         }
     }
@@ -35,6 +44,10 @@ class SecureTokenManager(context: Context) {
     fun getIdToken(): String? = sharedPreferences.getString("id_token", null)
 
     fun getServerAuthCode(): String? = sharedPreferences.getString("server_auth_code", null)
+
+    fun getDisplayName(): String? = sharedPreferences.getString("display_name", null)
+
+    fun getPhotoUrl(): String? = sharedPreferences.getString("photo_url", null)
 
     fun clearTokens() {
         sharedPreferences.edit().clear().apply()
