@@ -1,11 +1,19 @@
 package com.gntr.professionalsleeper.presentation
 
+import CalendarSyncWorker
 import android.content.Context
 import android.content.pm.ResolveInfo
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
 import com.gntr.professionalsleeper.data.local.entity.SessionStatus
 import com.gntr.professionalsleeper.data.local.entity.SessionType
@@ -153,5 +161,28 @@ class MainViewModel @Inject constructor(
             prefsRepo.setSetupComplete(false)
             _resetEvents.send(Unit)
         }
+    }
+
+    fun getSyncState(context: Context): StateFlow<Boolean> {
+        return WorkManager.getInstance(context)
+            .getWorkInfosForUniqueWorkLiveData("ImmediateCalendarSync")
+            .asFlow()
+            .map { workInfos ->
+                workInfos.any { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    }
+
+    fun triggerCalendarSync(context: Context, accountEmail: String) {
+        val syncRequest = OneTimeWorkRequestBuilder<CalendarSyncWorker>()
+            .setInputData(workDataOf("account_email" to accountEmail))
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "ImmediateCalendarSync",
+            ExistingWorkPolicy.REPLACE,
+            syncRequest
+        )
     }
 }
