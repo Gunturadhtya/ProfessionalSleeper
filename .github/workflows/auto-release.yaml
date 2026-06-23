@@ -3,7 +3,7 @@ name: Build, Release, and Distribute
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-deploy:
@@ -29,11 +29,6 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: echo $GOOGLE_SERVICES_JSON > app/google-services.json
-
-      - name: Build Debug APK
-        env:
-          ANDROID_CLIENT_ID: ${{ secrets.ANDROID_CLIENT_ID }}
-        run: ./gradlew assembleDebug
 
       - name: Build Debug APK
         env:
