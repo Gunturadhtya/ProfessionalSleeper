@@ -6,27 +6,42 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Build
 import android.os.IBinder
-import androidx.compose.runtime.snapshots.toInt
 import androidx.core.app.NotificationCompat
 import com.gntr.professionalsleeper.R
+import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
 import com.gntr.professionalsleeper.framework.alarm.AlarmConstants.ALARM_CHANNEL_ID
 import com.gntr.professionalsleeper.framework.alarm.AlarmConstants.EXTRA_SESSION_ID
 import com.gntr.professionalsleeper.presentation.ringing.RingingActivity
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
-class AlarmService: Service() {
+@AndroidEntryPoint
+class AlarmService : Service() {
+
+    @Inject
+    lateinit var prefsRepo: AppPreferencesRepository
+
+    private var mediaPlayer: MediaPlayer? = null
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Timber.d("onStartCommand dieksekusi")
-
         val sessionId = intent?.getLongExtra(EXTRA_SESSION_ID, -1L) ?: -1L
         if (sessionId == -1L) {
-            Timber.e("Gagal memproses alarm: EXTRA_SESSION_ID null atau -1")
             return START_NOT_STICKY
         }
 
-        Timber.i("Mempersiapkan Notifikasi Alarm untuk sessionId: $sessionId")
         createNotificationChannel()
 
         val fullScreenIntent = Intent(this, RingingActivity::class.java).apply {
@@ -51,10 +66,35 @@ class AlarmService: Service() {
             .setOngoing(true)
             .build()
 
-        Timber.d("Menjalankan startForeground dengan ID 1001")
         startForeground(1001, notification)
 
+        playAlarmAudio()
+
         return START_STICKY
+    }
+
+    private fun playAlarmAudio() {
+        serviceScope.launch {
+            try {
+                val uriString = prefsRepo.alarmRingtoneUriFlow.first()
+                val uri = Uri.parse(uriString)
+
+                mediaPlayer = MediaPlayer().apply {
+                    setDataSource(applicationContext, uri)
+                    setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build()
+                    )
+                    isLooping = true
+                    prepare()
+                    start()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to initialize or play MediaPlayer for alarm ringtone.")
+            }
+        }
     }
 
     private fun createNotificationChannel(){
@@ -71,6 +111,16 @@ class AlarmService: Service() {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.apply {
+            if (isPlaying) stop()
+            release()
+        }
+        mediaPlayer = null
+        serviceScope.cancel()
     }
 
     override fun onBind(p0: Intent?): IBinder? = null

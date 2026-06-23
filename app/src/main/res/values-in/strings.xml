@@ -65,6 +65,6 @@
     <string name="cd_default_profile_picture">Foto profil bawaan</string>
 
     <!-- SettingsScreen UI -->
-    <string name="settings_title">Pemicu Peluncuran Aplikasi</string>
+    <string name="settings_title">Pengaturan</string>
     <string name="settings_instruction">Pilih aplikasi yang akan otomatis terbuka saat alarm dimatikan:</string>
 </resources>

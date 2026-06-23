@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import android.provider.Settings
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -22,6 +23,7 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val EVERYMAN_TYPE = stringPreferencesKey("everyman_type")
         val WAKE_UP_HOUR = intPreferencesKey("wake_up_hour")
         val WAKE_UP_MINUTE = intPreferencesKey("wake_up_minute")
+        val ALARM_RINGTONE_URI = stringPreferencesKey("alarm_ringtone_uri")
     }
 
     val targetAppPackageFlow: Flow<String?> = dataStore.data.map { preferences ->
@@ -35,6 +37,10 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
     val wakeUpHourFlow: Flow<Int?> = dataStore.data.map { it[WAKE_UP_HOUR] }
 
     val wakeUpMinuteFlow: Flow<Int?> = dataStore.data.map { it[WAKE_UP_MINUTE] }
+
+    val alarmRingtoneUriFlow: Flow<String> = dataStore.data.map { preferences ->
+        preferences[ALARM_RINGTONE_URI] ?: Settings.System.DEFAULT_ALARM_ALERT_URI.toString()
+    }
 
     suspend fun saveTargetAppPackage(packageName: String) {
         dataStore.edit { preferences ->
@@ -58,6 +64,12 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         dataStore.edit {
             it[WAKE_UP_HOUR] = hour
             it[WAKE_UP_MINUTE] = minute
+        }
+    }
+
+    suspend fun saveAlarmRingtoneUri(uriString: String) {
+        dataStore.edit { preferences ->
+            preferences[ALARM_RINGTONE_URI] = uriString
         }
     }
 }

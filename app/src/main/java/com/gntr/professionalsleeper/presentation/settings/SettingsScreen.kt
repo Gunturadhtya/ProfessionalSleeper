@@ -1,5 +1,11 @@
 package com.gntr.professionalsleeper.presentation.settings
 
+import android.app.Activity
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gntr.professionalsleeper.R
 import com.gntr.professionalsleeper.presentation.MainViewModel
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,8 +32,28 @@ fun SettingsScreen(
     val context = LocalContext.current
     val targetAppPackage by viewModel.targetAppPackage.collectAsState()
     val installedApps by viewModel.installedApps.collectAsState()
+    val alarmRingtoneUri by viewModel.alarmRingtoneUri.collectAsState()
     val listState = rememberLazyListState()
 
+    val ringtoneName = remember(alarmRingtoneUri) {
+        if (alarmRingtoneUri.isNotEmpty()) {
+            val ringtone = RingtoneManager.getRingtone(context, alarmRingtoneUri.toUri())
+            ringtone?.getTitle(context) ?: "Unknown Ringtone"
+        } else {
+            "Default"
+        }
+    }
+
+    val ringtoneLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri: Uri? = result.data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            if (uri != null) {
+                viewModel.saveAlarmRingtone(uri.toString())
+            }
+        }
+    }
     LaunchedEffect(Unit) {
         viewModel.initializeAppList(context)
     }
@@ -59,6 +86,35 @@ fun SettingsScreen(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
+            Text(
+                text = "Alarm Preferences",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(16.dp)
+            )
+            ListItem(
+                headlineContent = { Text("Alarm Sound") },
+                supportingContent = { Text(ringtoneName) },
+                modifier = Modifier.clickable {
+                    val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                        if (alarmRingtoneUri.isNotEmpty()) {
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI,
+                                alarmRingtoneUri.toUri())
+                        }
+                    }
+                    ringtoneLauncher.launch(intent)
+                }
+            )
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
+            Text(
+                text = "App Launch",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(16.dp)
+            )
             Text(
                 text = stringResource(R.string.settings_instruction),
                 style = MaterialTheme.typography.bodyMedium,

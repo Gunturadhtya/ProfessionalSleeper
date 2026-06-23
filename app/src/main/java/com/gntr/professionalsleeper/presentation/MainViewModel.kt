@@ -83,6 +83,8 @@ class MainViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val alarmRingtoneUri: StateFlow<String> = prefsRepo.alarmRingtoneUriFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     @RequiresApi(Build.VERSION_CODES.O)
     val todayUiSessions: StateFlow<List<SleepSessionUiModel>> =
@@ -247,6 +249,12 @@ class MainViewModel @Inject constructor(
             } else {
                 Timber.w("Calendar sync aborted: No valid signed-in account found.")
             }
+        }
+    }
+
+    fun saveAlarmRingtone(uriString: String) {
+        viewModelScope.launch {
+            prefsRepo.saveAlarmRingtoneUri(uriString)
         }
     }
 }
