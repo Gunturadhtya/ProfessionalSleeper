@@ -27,6 +27,7 @@ googleApiCalendar = "v3-rev20241101-2.0.0"
 kotlinxCoroutinesPlayServices = "1.7.3"
 securityCrypto = "1.1.0-alpha06"
 workRuntimeKtx = "2.9.0"
+foundation = "1.11.3"
 
 [libraries]
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }
@@ -69,6 +70,7 @@ google-api-services-calendar = { module = "com.google.apis:google-api-services-c
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -144,7 +144,7 @@ class MainViewModel @Inject constructor(
             val eventItems = events.map { event ->
                 ScheduleListItem.CalendarEvent(
                     event = CalendarEventUiMapper.mapToUiModel(event),
-                    sortKey = Instant.ofEpochMilli(event.startTime).atZone(ZoneId.systemDefault())
+                    sortKey = Instant.ofEpochMilli(event.event.startTime).atZone(ZoneId.systemDefault())
                 )
             }
 

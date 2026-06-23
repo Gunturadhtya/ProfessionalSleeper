@@ -2,6 +2,8 @@ package com.gntr.professionalsleeper.presentation.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,6 +25,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.gntr.professionalsleeper.R
+import com.gntr.professionalsleeper.data.local.dao.CalendarSourceDao
+import com.gntr.professionalsleeper.data.local.entity.CalendarSourceEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,11 +36,18 @@ fun ProfileScreen(
     onLogoutRequest: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
+
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val calendarSources by viewModel.calendarSources.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.refresh()
     }
+
+    LaunchedEffect(Unit) {
+        viewModel.syncCalendarList()
+    }
+
 
     Scaffold(
         topBar = {
@@ -62,6 +73,10 @@ fun ProfileScreen(
                     name = state.account?.displayName,
                     email = state.account?.email,
                     photoUrl = state.account?.photoUrl,
+                    calendarSources = calendarSources,
+                    onCalendarSource = { source, isEnabled ->
+                        viewModel.toggleCalendarSource(source, isEnabled)
+                    },
                     onLogout = {
                         viewModel.logout()
                         onLogoutRequest.invoke()
@@ -79,7 +94,9 @@ private fun LoggedInContent(
     name: String?,
     email: String?,
     photoUrl: String?,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    calendarSources: List<CalendarSourceEntity>,
+    onCalendarSource: (CalendarSourceEntity, Boolean) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -123,6 +140,29 @@ private fun LoggedInContent(
             Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(R.string.profile_logout))
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "Shared Calendars",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.align(Alignment.Start)
+        )
+
+        LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
+            items(calendarSources, key = { it.id }) { source ->
+                ListItem(
+                    headlineContent = { Text(source.displayName) },
+                    trailingContent = {
+                        Switch(
+                            checked = source.isEnabled,
+                            onCheckedChange = { isChecked ->
+                                onCalendarSource(source, isChecked)
+                            }
+                        )
+                    }
+                )
+            }
         }
     }
 }

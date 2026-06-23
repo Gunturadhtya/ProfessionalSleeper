@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gntr.professionalsleeper.R
 import com.gntr.professionalsleeper.presentation.MainViewModel
@@ -316,6 +317,14 @@ fun SessionCard(session: SleepSessionUiModel) {
 
 @Composable
 private fun CalendarEventCard(event: CalendarEventUiModel) {
+    val tagColor = remember(event.tagColorHex) {
+        try {
+            Color(android.graphics.Color.parseColor(event.tagColorHex))
+        } catch (e: Exception) {
+            CalendarEventColor
+        }
+    }
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -327,29 +336,45 @@ private fun CalendarEventCard(event: CalendarEventUiModel) {
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(6.dp)
-                    .background(CalendarEventColor)
+                    .background(tagColor)
             )
 
             Row(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 14.dp)
                     .weight(1f),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Event,
                     contentDescription = null,
-                    tint = CalendarEventColor
+                    tint = tagColor,
+                    modifier = Modifier.padding(top = 2.dp)
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = event.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = event.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        StatusChip(
+                            label = event.tagLabel,
+                            bgColor = tagColor.copy(alpha = 0.15f),
+                            textColor = tagColor
+                        )
+                    }
                     Text(
                         text = event.timeRange,
                         style = MaterialTheme.typography.bodySmall.copy(fontFamily = JetBrainsMono),
@@ -377,7 +402,9 @@ private fun StatusChip(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = textColor,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
