@@ -103,7 +103,6 @@ class MainViewModel @Inject constructor(
             .toEpochMilli()
     }
 
-    // Updated to support dynamic day offsets
     @RequiresApi(Build.VERSION_CODES.O)
     private fun getEndOfDayOffsetMilli(daysOffset: Long): Long {
         return LocalDate.now(ZoneId.systemDefault())

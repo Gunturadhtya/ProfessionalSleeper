@@ -25,7 +25,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.gntr.professionalsleeper.R
-import com.gntr.professionalsleeper.data.local.dao.CalendarSourceDao
 import com.gntr.professionalsleeper.data.local.entity.CalendarSourceEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +33,7 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onLoginRequested: () -> Unit,
     onLogoutRequest: () -> Unit,
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: ProfileViewModel = hiltViewModel(),
 ) {
 
     val state by viewModel.state.collectAsStateWithLifecycle()

@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authManager: IAuthManager
+    private val authManager: IAuthManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthState())

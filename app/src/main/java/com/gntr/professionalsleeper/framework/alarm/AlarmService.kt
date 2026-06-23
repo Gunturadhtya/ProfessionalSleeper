@@ -1,5 +1,6 @@
 package com.gntr.professionalsleeper.framework.alarm
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @AndroidEntryPoint
 class AlarmService : Service() {
@@ -36,6 +38,7 @@ class AlarmService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    @SuppressLint("FullScreenIntentPolicy")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val sessionId = intent?.getLongExtra(EXTRA_SESSION_ID, -1L) ?: -1L
         if (sessionId == -1L) {
@@ -77,7 +80,7 @@ class AlarmService : Service() {
         serviceScope.launch {
             try {
                 val uriString = prefsRepo.alarmRingtoneUriFlow.first()
-                val uri = Uri.parse(uriString)
+                val uri = uriString.toUri()
 
                 mediaPlayer = MediaPlayer().apply {
                     setDataSource(applicationContext, uri)

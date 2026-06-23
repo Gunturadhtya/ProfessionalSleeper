@@ -40,6 +40,7 @@ import kotlinx.coroutines.delay
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import androidx.core.graphics.toColorInt
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,14 +49,14 @@ fun ScheduleScreen(
     viewModel: MainViewModel,
     onNavigateToSettings: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    onResetComplete: () -> Unit
+    onResetComplete: () -> Unit,
 ) {
     val scheduleItems by viewModel.upcomingScheduleItems.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     val sleepSectors by viewModel.sleepSectors.collectAsStateWithLifecycle()
     val calendarSectors by viewModel.calendarSectors.collectAsStateWithLifecycle()
 
-    var showResetDialog by remember { mutableStateOf(false) }
+    var showResetDialog by remember { mutableStateOf(value = false) }
 
     var currentTime by remember { mutableStateOf(ZonedDateTime.now()) }
 
@@ -319,8 +320,8 @@ fun SessionCard(session: SleepSessionUiModel) {
 private fun CalendarEventCard(event: CalendarEventUiModel) {
     val tagColor = remember(event.tagColorHex) {
         try {
-            Color(android.graphics.Color.parseColor(event.tagColorHex))
-        } catch (e: Exception) {
+            Color(color = event.tagColorHex.toColorInt())
+        } catch (_: Exception) {
             CalendarEventColor
         }
     }
