@@ -1,6 +1,8 @@
 package com.gntr.professionalsleeper.framework.auth
 
 import android.content.Context
+import android.util.Base64
+import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -11,16 +13,19 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.api.services.calendar.CalendarScopes
 import com.gntr.professionalsleeper.BuildConfig
+import com.gntr.professionalsleeper.data.local.security.SecureTokenManager
 import com.gntr.professionalsleeper.domain.auth.AuthAccount
 import com.gntr.professionalsleeper.domain.auth.AuthorizationRequiredException
 import com.gntr.professionalsleeper.domain.auth.IAuthManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import timber.log.Timber
 
 class AuthManagerImpl(
-    private val context: Context
+    private val context: Context,
+    private val secureTokenManager: SecureTokenManager
 ) : IAuthManager {
 
     private val credentialManager = CredentialManager.create(context)
@@ -43,7 +48,7 @@ class AuthManagerImpl(
 
             if (credential !is CustomCredential ||
                 credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                Timber.e("Sign-in failed: Unrecognized credential type received. Type: ${credential::class.java.simpleName}")
+                Timber.e("Sign-in failed: Unrecognized credential type received.")
                 return@withContext Result.failure(Exception("Unrecognized credential type"))
             }
 
@@ -64,13 +69,18 @@ class AuthManagerImpl(
             val authResult = authorizationClient.authorize(authRequest).await()
 
             if (authResult.hasResolution()) {
-                Timber.w("OAuth2 scopes require user resolution (PendingIntent generated).")
+                Timber.w("OAuth2 scopes require user resolution.")
                 return@withContext Result.failure(
                     AuthorizationRequiredException(authResult.pendingIntent!!)
                 )
             }
 
-            Timber.i("OAuth2 Authorization successful. Server Auth Code retrieved.")
+            secureTokenManager.saveTokens(
+                id = googleIdCredential.id,
+                email = googleIdCredential.id,
+                idToken = googleIdCredential.idToken,
+                serverAuthCode = authResult.serverAuthCode
+            )
 
             Result.success(
                 AuthAccount(
@@ -86,7 +96,56 @@ class AuthManagerImpl(
         }
     }
 
-    override suspend fun getSignedInAccount(): AuthAccount? = null
+    override suspend fun getSignedInAccount(): AuthAccount? = withContext(Dispatchers.IO) {
+        val idToken = secureTokenManager.getIdToken()
+        val serverAuthCode = secureTokenManager.getServerAuthCode()
+        val userId = secureTokenManager.getUserId()
+        val userEmail = secureTokenManager.getUserEmail()
 
-    override suspend fun signOut() {}
+        if (idToken.isNullOrEmpty() || userId.isNullOrEmpty() || userEmail.isNullOrEmpty()) {
+            return@withContext null
+        }
+
+        if (isTokenExpired(idToken)) {
+            Timber.w("Local OAuth token is expired. Clearing local state.")
+            secureTokenManager.clearTokens()
+            return@withContext null
+        }
+
+        AuthAccount(
+            id = userId,
+            email = userEmail,
+            idToken = idToken,
+            serverAuthCode = serverAuthCode
+        )
+    }
+
+    override suspend fun signOut(): Unit = withContext(Dispatchers.IO) {
+        try {
+            secureTokenManager.clearTokens()
+            credentialManager.clearCredentialState(ClearCredentialStateRequest())
+            Timber.i("Successfully signed out and cleared local credentials.")
+        } catch (e: Exception) {
+            Timber.e(e, "Error occurred during sign-out process")
+        }
+    }
+
+    private fun isTokenExpired(jwt: String): Boolean {
+        return try {
+            val split = jwt.split(".")
+            if (split.size < 2) return true
+
+            val payloadBytes = Base64.decode(split[1], Base64.URL_SAFE)
+            val payloadString = String(payloadBytes, Charsets.UTF_8)
+            val jsonObject = JSONObject(payloadString)
+
+            val exp = jsonObject.getLong("exp")
+            val currentTimeSeconds = System.currentTimeMillis() / 1000
+
+            currentTimeSeconds >= (exp - 300)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to decode JWT to check expiration")
+            true
+        }
+    }
 }

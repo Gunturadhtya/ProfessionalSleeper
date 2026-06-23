@@ -65,7 +65,11 @@ class MainActivity : ComponentActivity() {
                             AuthScreen(
                                 viewModel = authViewModel,
                                 onAuthSuccess = { userEmail ->
-                                    enqueueCalendarSyncEngine(this@MainActivity, userEmail)
+                                    if (userEmail != null) {
+                                        enqueueCalendarSyncEngine(this@MainActivity, userEmail)
+                                    } else {
+                                        Timber.i("User opted for offline execution. Bypassing Calendar Sync Engine.")
+                                    }
                                     currentScreen = ScreenState.SCHEDULE
                                 }
                             )

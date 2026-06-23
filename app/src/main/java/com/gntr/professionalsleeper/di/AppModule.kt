@@ -6,6 +6,7 @@ import com.gntr.professionalsleeper.data.local.AppDatabase
 import com.gntr.professionalsleeper.data.local.dao.SleepSessionDao
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
 import com.gntr.professionalsleeper.data.local.datastore.dataStore
+import com.gntr.professionalsleeper.data.local.security.SecureTokenManager
 import com.gntr.professionalsleeper.data.repository.SleepSessionRepositoryImpl
 import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import com.gntr.professionalsleeper.domain.auth.IAuthManager
@@ -59,8 +60,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAuthManager(@ApplicationContext context: Context): IAuthManager {
-        return AuthManagerImpl(context)
+    fun provideSecureTokenManager(@ApplicationContext context: Context): SecureTokenManager {
+        return SecureTokenManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAuthManager(
+        @ApplicationContext context: Context,
+        secureTokenManager: SecureTokenManager
+    ): IAuthManager {
+        return AuthManagerImpl(context, secureTokenManager)
     }
 
     @Provides
