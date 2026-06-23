@@ -13,6 +13,9 @@ import com.gntr.professionalsleeper.domain.repository.ITransactionRunner
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
+import java.time.Duration
+import java.time.Instant
+import java.time.ZoneOffset
 
 @HiltWorker
 class CalendarSyncWorker @AssistedInject constructor(
@@ -41,13 +44,38 @@ class CalendarSyncWorker @AssistedInject constructor(
                 val localSessions = repository.getSessionsSnapshotForTimeframe(timeMin, timeMax)
 
                 for (session in localSessions) {
-                    val startMilli = session.startTime.toInstant().toEpochMilli()
-                    val endMilli = session.endTime.toInstant().toEpochMilli()
+                    if (session.status == SessionStatus.COMPLETED) continue
 
-                    val hasConflict = calendarSyncService.checkScheduleConflict(startMilli, endMilli, calendarEvents)
+                    var proposedStart = session.startTime
+                    var proposedEnd = session.endTime
+                    val sessionDuration = Duration.between(proposedStart, proposedEnd)
 
-                    if (hasConflict && session.status != SessionStatus.COMPLETED) {
-                        val resolvedSession = session.copy(status = SessionStatus.SCHEDULED)
+                    var hasConflict = true
+                    var boundsMutated = false
+
+                    while (hasConflict) {
+                        val startMilli = proposedStart.toInstant().toEpochMilli()
+                        val endMilli = proposedEnd.toInstant().toEpochMilli()
+
+                        val conflictingEvent = calendarEvents.firstOrNull { event ->
+                            startMilli < event.endTime && endMilli > event.startTime
+                        }
+
+                        if (conflictingEvent != null) {
+                            proposedStart = Instant.ofEpochMilli(conflictingEvent.endTime).atZone(ZoneOffset.UTC)
+                            proposedEnd = proposedStart.plus(sessionDuration)
+                            boundsMutated = true
+                        } else {
+                            hasConflict = false
+                        }
+                    }
+
+                    if (boundsMutated) {
+                        val resolvedSession = session.copy(
+                            startTime = proposedStart,
+                            endTime = proposedEnd,
+                            status = SessionStatus.SCHEDULED
+                        )
                         repository.updateSession(resolvedSession)
                         sessionsToReschedule.add(resolvedSession)
                     }
