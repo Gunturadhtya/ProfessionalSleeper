@@ -29,7 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.gntr.professionalsleeper.R
 import com.gntr.professionalsleeper.data.local.entity.EverymanType
 import java.time.LocalTime
 import java.time.ZonedDateTime
@@ -47,7 +49,10 @@ fun OnboardingScreen(
 
     Scaffold { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
-            Text("Pilih tipe Everyman:", style = MaterialTheme.typography.headlineSmall)
+            Text(
+                text = stringResource(R.string.setup_select_everyman_type),
+                style = MaterialTheme.typography.headlineSmall
+            )
 
             EverymanType.entries.forEach { type ->
                 Row(
@@ -57,12 +62,19 @@ fun OnboardingScreen(
                     RadioButton(
                         selected = (selectedEveryman == type),
                         onClick = { selectedEveryman = type })
-                    Text("${type.displayName} (Core: ${type.coreSleepMinutes}m, Nap: ${type.napCount}x)")
+                    Text(
+                        text = stringResource(
+                            R.string.setup_everyman_description,
+                            type.displayName,
+                            type.coreSleepMinutes,
+                            type.napCount
+                        )
+                    )
                 }
             }
 
             Button(onClick = { showTimePicker = true }) {
-                Text("Pilih Jam Bangun: ${wakeUpTime}")
+                Text(text = stringResource(R.string.setup_select_wake_up_time_label, wakeUpTime))
             }
 
             Button(
@@ -75,7 +87,7 @@ fun OnboardingScreen(
                 },
                 enabled = selectedEveryman != null
             ) {
-                Text("Simpan & Mulai")
+                Text(text = stringResource(R.string.setup_save_and_start))
             }
 
             if (showTimePicker) {
@@ -88,7 +100,7 @@ fun OnboardingScreen(
                 AlertDialog(
                     onDismissRequest = { showTimePicker = false },
                     title = {
-                        Text("Pilih Jam Bangun")
+                        Text(text = stringResource(R.string.setup_select_wake_up_time_title))
                     },
                     text = {
                         TimePicker(
@@ -105,7 +117,7 @@ fun OnboardingScreen(
                                 showTimePicker = false
                             }
                         ) {
-                            Text("OK")
+                            Text(text = stringResource(R.string.common_ok))
                         }
                     },
                     dismissButton = {
@@ -114,7 +126,7 @@ fun OnboardingScreen(
                                 showTimePicker = false
                             }
                         ) {
-                            Text("Batal")
+                            Text(text = stringResource(R.string.common_cancel))
                         }
                     }
                 )

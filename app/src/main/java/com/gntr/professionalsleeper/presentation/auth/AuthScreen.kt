@@ -11,7 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.gntr.professionalsleeper.R
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -68,7 +70,7 @@ fun AuthScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Professional Sleeper",
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -76,7 +78,7 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Synchronize your polyphasic schedule with your calendar.",
+                text = stringResource(R.string.auth_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -98,7 +100,7 @@ fun AuthScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Continue with Google")
+                    Text(stringResource(R.string.auth_btn_google))
                 }
             }
 
@@ -112,7 +114,7 @@ fun AuthScreen(
                 enabled = !state.isLoading,
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Use offline without sync")
+                Text(stringResource(R.string.auth_btn_offline))
             }
         }
     }

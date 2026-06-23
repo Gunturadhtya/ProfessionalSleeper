@@ -156,7 +156,7 @@ fun RingingScreen(
                         modifier = Modifier.height(56.dp)
                     ) {
                         Text(
-                            text = "Snooze (${2 - session.snoozeCount} tersisa)",
+                            text = stringResource(R.string.ringing_button_snooze, 2 - session.snoozeCount),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )

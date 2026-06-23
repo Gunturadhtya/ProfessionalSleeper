@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.gntr.professionalsleeper.R
 import com.gntr.professionalsleeper.data.local.entity.SessionStatus
 import com.gntr.professionalsleeper.data.local.entity.SessionType
 import com.gntr.professionalsleeper.data.local.entity.SleepSession
@@ -79,19 +81,32 @@ fun ScheduleScreen(
         sheetContent = { SleepAnalysisSheetContent() },
         topBar = {
             TopAppBar(
-                title = { Text("Professional Sleeper", style = MaterialTheme.typography.headlineMedium) },
+                title = { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium) },
                 actions = {
                     IconButton(onClick = { viewModel.triggerDebugAlarm() }) {
-                        Icon(Icons.Default.Warning, contentDescription = "Debug Alarm", tint = MaterialTheme.colorScheme.error)
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = stringResource(R.string.cd_debug_alarm),
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                     IconButton(onClick = { showResetDialog = true }) {
-                        Icon(Icons.Default.RestartAlt, contentDescription = "Reset Sleep Session")
+                        Icon(
+                            imageVector = Icons.Default.RestartAlt,
+                            contentDescription = stringResource(R.string.cd_reset_sleep_session)
+                        )
                     }
                     IconButton(onClick = onNavigateToProfile) {
-                        Icon(Icons.Default.AccountCircle, contentDescription = "Profile")
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = stringResource(R.string.cd_profile)
+                        )
                     }
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.cd_settings)
+                        )
                     }
                 }
             )
@@ -156,22 +171,18 @@ private fun ResetSessionDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Default.RestartAlt, contentDescription = null) },
-        title = { Text("Reset sleep session?") },
+        title = { Text(stringResource(R.string.dialog_reset_title)) },
         text = {
-            Text(
-                "This will cancel all scheduled alarms, delete every session " +
-                        "in your current schedule, and take you back to setup so " +
-                        "you can configure your schedule again. This can't be undone."
-            )
+            Text(stringResource(R.string.dialog_reset_message))
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Reset", color = MaterialTheme.colorScheme.error)
+                Text(stringResource(R.string.common_reset), color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )
@@ -185,14 +196,19 @@ private fun TodayScheduleHeader(sessionCount: Int) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = "Today's Schedule",
+            text = stringResource(R.string.schedule_header_today),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
         if (sessionCount > 0) {
+            val sessionText = if (sessionCount == 1) {
+                stringResource(R.string.schedule_session_count_single, sessionCount)
+            } else {
+                stringResource(R.string.schedule_session_count_plural, sessionCount)
+            }
             Text(
-                text = "$sessionCount session${if (sessionCount > 1) "s" else ""}",
+                text = sessionText,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -214,7 +230,7 @@ private fun EmptyScheduleCard() {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "No sessions scheduled for today",
+                text = stringResource(R.string.schedule_empty_message),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -239,7 +255,11 @@ fun SessionCard(session: SleepSession) {
     val isOngoing = !session.startTime.isAfter(now) && session.endTime.isAfter(now)
 
     val accentColor = if (session.type == SessionType.CORE) CoreSleepColor else NapSleepColor
-    val typeLabel = if (session.type == SessionType.CORE) "Core Sleep" else "Nap"
+    val typeLabel = if (session.type == SessionType.CORE) {
+        stringResource(R.string.session_type_core)
+    } else {
+        stringResource(R.string.session_type_nap)
+    }
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -289,7 +309,7 @@ fun SessionCard(session: SleepSession) {
                 )
 
                 Text(
-                    text = "${durationMinutes} min",
+                    text = stringResource(R.string.session_duration, durationMinutes),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -307,17 +327,17 @@ private fun StatusChip(
 ) {
     val (label, bgColor, textColor) = when {
         isOngoing -> Triple(
-            "Ongoing",
+            stringResource(R.string.status_ongoing),
             accentColor.copy(alpha = 0.15f),
             accentColor
         )
         isUpcoming && status == SessionStatus.SCHEDULED -> Triple(
-            "Upcoming",
+            stringResource(R.string.status_upcoming),
             MaterialTheme.colorScheme.secondaryContainer,
             MaterialTheme.colorScheme.onSecondaryContainer
         )
         status == SessionStatus.COMPLETED -> Triple(
-            "Done",
+            stringResource(R.string.status_done),
             MaterialTheme.colorScheme.surfaceVariant,
             MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -364,7 +384,7 @@ private fun SleepAnalysisSheetContent() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Sleep Analysis",
+            text = stringResource(R.string.analysis_title),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -379,7 +399,7 @@ private fun SleepAnalysisSheetContent() {
         ) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "Historical Data Visualization...",
+                    text = stringResource(R.string.analysis_placeholder),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )

@@ -11,7 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.gntr.professionalsleeper.R
 import com.gntr.professionalsleeper.presentation.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,10 +49,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("App Launch Trigger", style = MaterialTheme.typography.headlineSmall) },
+                title = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineSmall) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 }
             )
@@ -58,7 +60,7 @@ fun SettingsScreen(
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             Text(
-                text = "Pilih aplikasi yang akan otomatis terbuka saat alarm dimatikan:",
+                text = stringResource(R.string.settings_instruction),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(16.dp)
             )

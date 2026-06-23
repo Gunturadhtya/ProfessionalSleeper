@@ -3,6 +3,7 @@ package com.gntr.professionalsleeper.presentation.auth
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gntr.professionalsleeper.R
 import com.gntr.professionalsleeper.domain.auth.AuthorizationRequiredException
 import com.gntr.professionalsleeper.domain.auth.IAuthManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +31,7 @@ class AuthViewModel @Inject constructor(
                 if (event.isGranted) {
                     handleGoogleSignIn(event.context)
                 } else {
-                    _state.update { it.copy(errorMessage = "Calendar permissions are required to sync naps.") }
+                    _state.update { it.copy(errorMessage = event.context.getString(R.string.error_calendar_permission)) }
                 }
             }
             AuthEvent.ContinueOffline -> {
@@ -53,7 +54,8 @@ class AuthViewModel @Inject constructor(
                 if (exception is AuthorizationRequiredException) {
                     _state.update { it.copy(pendingAuthorization = exception.pendingIntent) }
                 } else {
-                    _state.update { it.copy(errorMessage = exception.message ?: "Google Sign-In failed") }
+                    val message = exception.message ?: context.getString(R.string.error_google_signin_failed)
+                    _state.update { it.copy(errorMessage = message) }
                 }
             }
         }

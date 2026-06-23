@@ -16,11 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.gntr.professionalsleeper.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,10 +41,10 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profile", style = MaterialTheme.typography.headlineSmall) },
+                title = { Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.headlineSmall) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 }
             )
@@ -91,7 +93,7 @@ private fun LoggedInContent(
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = name?.takeIf { it.isNotBlank() } ?: "Signed in",
+            text = name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.profile_signed_in),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
@@ -120,7 +122,7 @@ private fun LoggedInContent(
         ) {
             Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Log out")
+            Text(stringResource(R.string.profile_logout))
         }
     }
 }
@@ -139,7 +141,7 @@ private fun GuestContent(onLoginClick: () -> Unit) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Guest",
+            text = stringResource(R.string.profile_guest),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
@@ -148,7 +150,7 @@ private fun GuestContent(onLoginClick: () -> Unit) {
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "You're not signed in. Sign in with Google to sync your schedule with your calendar.",
+            text = stringResource(R.string.profile_guest_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -165,7 +167,7 @@ private fun GuestContent(onLoginClick: () -> Unit) {
         ) {
             Icon(Icons.AutoMirrored.Filled.Login, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Log in with Google")
+            Text(stringResource(R.string.profile_login_google))
         }
     }
 }
@@ -175,7 +177,7 @@ private fun ProfileAvatar(photoUrl: String?, size: androidx.compose.ui.unit.Dp) 
     if (!photoUrl.isNullOrBlank()) {
         AsyncImage(
             model = photoUrl,
-            contentDescription = "Profile picture",
+            contentDescription = stringResource(R.string.cd_profile_picture),
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(size)
@@ -192,7 +194,7 @@ private fun ProfileAvatar(photoUrl: String?, size: androidx.compose.ui.unit.Dp) 
         ) {
             Icon(
                 imageVector = Icons.Filled.Person,
-                contentDescription = "Default profile picture",
+                contentDescription = stringResource(R.string.cd_default_profile_picture),
                 modifier = Modifier.size(size * 0.55f),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
