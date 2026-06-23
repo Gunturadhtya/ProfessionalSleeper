@@ -56,9 +56,10 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.plant(Timber.DebugTree())
 
-
+        if (BuildConfig.DEBUG){
+            Timber.plant(Timber.DebugTree())
+        }
 
         setContent {
             ProfessionalSleeperTheme {

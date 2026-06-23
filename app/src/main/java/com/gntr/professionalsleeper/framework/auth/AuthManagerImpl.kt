@@ -59,7 +59,7 @@ class AuthManagerImpl(
                 return@withContext Result.failure(e)
             }
 
-            Timber.d("Identity verification successful for user: ${googleIdCredential.id}")
+            Timber.d("Identity verification successful for user.")
 
             val authRequest = AuthorizationRequest.builder()
                 .setRequestedScopes(listOf(Scope(CalendarScopes.CALENDAR_READONLY)))
