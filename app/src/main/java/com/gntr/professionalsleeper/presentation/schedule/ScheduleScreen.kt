@@ -35,6 +35,8 @@ import com.gntr.professionalsleeper.presentation.MainViewModel
 import com.gntr.professionalsleeper.presentation.schedule.sectograph.Sectograph
 import com.gntr.professionalsleeper.ui.theme.CalendarEventColor
 import com.gntr.professionalsleeper.ui.theme.JetBrainsMono
+import kotlinx.coroutines.delay
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -53,6 +55,15 @@ fun ScheduleScreen(
     val calendarSectors by viewModel.calendarSectors.collectAsStateWithLifecycle()
 
     var showResetDialog by remember { mutableStateOf(false) }
+
+    var currentTime by remember { mutableStateOf(ZonedDateTime.now()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000L)
+            currentTime = ZonedDateTime.now()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.resetEvents.collect {
@@ -126,6 +137,7 @@ fun ScheduleScreen(
                     Sectograph(
                         sleepSectors = sleepSectors,
                         calendarSectors = calendarSectors,
+                        currentTime = currentTime,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 16.dp)

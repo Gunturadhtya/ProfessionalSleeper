@@ -1,5 +1,7 @@
 package com.gntr.professionalsleeper.presentation.schedule.sectograph
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +22,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.time.ZonedDateTime
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -27,6 +30,7 @@ import kotlin.math.sin
 fun Sectograph(
     sleepSectors: List<SectographSector>,
     calendarSectors: List<SectographSector>,
+    currentTime: ZonedDateTime,
     modifier: Modifier = Modifier
 ) {
     val textMeasurer = rememberTextMeasurer()
@@ -58,6 +62,8 @@ fun Sectograph(
                     sleepSectors.forEach { sector ->
                         drawSectorArc(sector, outerRadiusPx, outerStrokeWidth, center)
                     }
+
+                    drawCurrentTimeNeedle(currentTime, radius, center)
                 }
             }
     )
@@ -134,4 +140,30 @@ private fun DrawScope.drawSectorArc(
         size = size,
         style = Stroke(width = strokeWidthPx, cap = StrokeCap.Butt)
     )
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun DrawScope.drawCurrentTimeNeedle(
+    currentTime: ZonedDateTime,
+    radius: Float,
+    center: Offset
+) {
+    val totalMinutes = (currentTime.hour * 60) + currentTime.minute
+    val angleDeg = (totalMinutes / 1440f) * 360f
+
+    rotate(degrees = angleDeg, pivot = center) {
+        drawLine(
+            color = Color.Red.copy(alpha = 0.8f),
+            start = center,
+            end = Offset(center.x + radius * 0.85f, center.y),
+            strokeWidth = 3.dp.toPx(),
+            cap = StrokeCap.Round
+        )
+
+        drawCircle(
+            color = Color.Red.copy(alpha = 0.8f),
+            radius = 6.dp.toPx(),
+            center = center
+        )
+    }
 }
