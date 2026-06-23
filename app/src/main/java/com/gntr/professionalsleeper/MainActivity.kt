@@ -12,9 +12,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.Crossfade
-import androidx.compose.runtime.*
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -43,37 +46,47 @@ class MainActivity : ComponentActivity() {
             ProfessionalSleeperTheme {
                 RequestEssentialPermissions(context = this)
 
-                val viewModel: MainViewModel = hiltViewModel()
-                var currentScreen by remember { mutableStateOf(ScreenState.AUTH) }
+                val navController = rememberNavController()
 
-                Crossfade(targetState = currentScreen, label = "ScreenTransition") { screen ->
-                    when (screen) {
-                        ScreenState.SCHEDULE -> {
-                            ScheduleScreen(
-                                viewModel = viewModel,
-                                onNavigateToSettings = { currentScreen = ScreenState.SETTINGS }
-                            )
-                        }
-                        ScreenState.SETTINGS -> {
-                            SettingsScreen(
-                                viewModel = viewModel,
-                                onNavigateBack = { currentScreen = ScreenState.SCHEDULE }
-                            )
-                        }
-                        ScreenState.AUTH -> {
-                            val authViewModel: AuthViewModel = hiltViewModel()
-                            AuthScreen(
-                                viewModel = authViewModel,
-                                onAuthSuccess = { userEmail ->
-                                    if (userEmail != null) {
-                                        enqueueCalendarSyncEngine(this@MainActivity, userEmail)
-                                    } else {
-                                        Timber.i("User opted for offline execution. Bypassing Calendar Sync Engine.")
-                                    }
-                                    currentScreen = ScreenState.SCHEDULE
+                NavHost(
+                    navController = navController,
+                    startDestination = Route.Auth.route
+                ) {
+                    composable(Route.Auth.route) {
+                        val authViewModel: AuthViewModel = hiltViewModel()
+                        AuthScreen(
+                            viewModel = authViewModel,
+                            onAuthSuccess = { userEmail ->
+                                if (userEmail != null) {
+                                    enqueueCalendarSyncEngine(this@MainActivity, userEmail)
+                                } else {
+                                    Timber.i("User opted for offline execution. Bypassing Calendar Sync Engine.")
                                 }
-                            )
-                        }
+                                navController.navigate(Route.Schedule.route) {
+                                    popUpTo(Route.Auth.route) { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+
+                    composable(Route.Schedule.route) {
+                        val viewModel: MainViewModel = hiltViewModel()
+                        ScheduleScreen(
+                            viewModel = viewModel,
+                            onNavigateToSettings = {
+                                navController.navigate(Route.Settings.route)
+                            }
+                        )
+                    }
+
+                    composable(Route.Settings.route) {
+                        val viewModel: MainViewModel = hiltViewModel()
+                        SettingsScreen(
+                            viewModel = viewModel,
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
                     }
                 }
             }
