@@ -17,6 +17,9 @@ import com.gntr.professionalsleeper.data.local.security.SecureTokenManager
 import com.gntr.professionalsleeper.domain.auth.AuthAccount
 import com.gntr.professionalsleeper.domain.auth.AuthorizationRequiredException
 import com.gntr.professionalsleeper.domain.auth.IAuthManager
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -30,6 +33,11 @@ class AuthManagerImpl(
 
     private val credentialManager = CredentialManager.create(context)
     private val authorizationClient = Identity.getAuthorizationClient(context)
+    private val transport = NetHttpTransport()
+    private val jsonFactory = GsonFactory.getDefaultInstance()
+    private val verifier = GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+        .setAudience(listOf(BuildConfig.ANDROID_CLIENT_ID))
+        .build()
 
     override suspend fun signIn(context: Context): Result<AuthAccount> = withContext(Dispatchers.IO) {
         try {
@@ -103,15 +111,12 @@ class AuthManagerImpl(
         val idToken = secureTokenManager.getIdToken()
         val userId = secureTokenManager.getUserId()
         val userEmail = secureTokenManager.getUserEmail()
-        val displayName = secureTokenManager.getDisplayName()
-        val photoUrl = secureTokenManager.getPhotoUrl()
 
         if (idToken.isNullOrEmpty() || userId.isNullOrEmpty() || userEmail.isNullOrEmpty()) {
             return@withContext null
         }
 
-        if (isTokenExpired(idToken)) {
-            Timber.w("Local OAuth token is expired. Clearing local state.")
+        if (!isTokenValid(idToken)) {
             secureTokenManager.clearTokens()
             return@withContext null
         }
@@ -120,8 +125,8 @@ class AuthManagerImpl(
             id = userId,
             email = userEmail,
             idToken = idToken,
-            displayName = displayName,
-            photoUrl = photoUrl
+            displayName = secureTokenManager.getDisplayName(),
+            photoUrl = secureTokenManager.getPhotoUrl()
         )
     }
 
@@ -151,6 +156,16 @@ class AuthManagerImpl(
         } catch (e: Exception) {
             Timber.e(e, "Failed to decode JWT to check expiration")
             true
+        }
+    }
+
+    private fun isTokenValid(idTokenString: String): Boolean {
+        return try {
+            val validToken = verifier.verify(idTokenString)
+            validToken != null
+        } catch (e: Exception) {
+            Timber.e(e, "Cryptographic JWT validation failed.")
+            false
         }
     }
 }
