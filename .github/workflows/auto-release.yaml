@@ -1,12 +1,12 @@
-name: Auto GitHub Release
+name: Build, Release, and Distribute
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
-  build-and-release:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,15 +25,34 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Create google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: echo $GOOGLE_SERVICES_JSON > app/google-services.json
+
       - name: Build Debug APK
         env:
           ANDROID_CLIENT_ID: ${{ secrets.ANDROID_CLIENT_ID }}
         run: ./gradlew assembleDebug
 
-      - name: Create Release and Upload APK
+      - name: Build Debug APK
+        env:
+          ANDROID_CLIENT_ID: ${{ secrets.ANDROID_CLIENT_ID }}
+        run: ./gradlew assembleDebug
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: "Release Build #${{ github.run_number }}"
           body: "Automated release triggered by commit ${{ github.sha }}"
           files: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIALS }}
+          groups: qa-testers
+          file: app/build/outputs/apk/debug/app-debug.apk
+          releaseNotes: "Automated build #${{ github.run_number }} triggered by commit: ${{ github.sha }}"
