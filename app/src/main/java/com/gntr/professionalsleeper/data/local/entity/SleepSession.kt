@@ -11,5 +11,6 @@ data class SleepSession(
     val startTime: ZonedDateTime,
     val endTime: ZonedDateTime,
     val type: SessionType,
-    val status: SessionStatus
+    val status: SessionStatus,
+    val snoozeCount: Int = 0
 )

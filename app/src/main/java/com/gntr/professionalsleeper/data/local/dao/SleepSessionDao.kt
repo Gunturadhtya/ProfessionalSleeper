@@ -18,4 +18,10 @@ interface SleepSessionDao {
 
     @Query("SELECT * FROM sleep_sessions WHERE startTime >= :startOfDay AND startTime <= :endOfDay ORDER BY startTime ASC")
     fun getSessionsForDay(startOfDay: Long, endOfDay: Long): Flow<List<SleepSession>>
+
+    @Query("SELECT * FROM sleep_sessions WHERE id = :id")
+    suspend fun getSessionById(id: Int): SleepSession?
+
+    @Query("SELECT * FROM sleep_sessions WHERE startTime >= :startOfDay AND startTime <= :endOfDay")
+    suspend fun getSessionsSnapshotForDay(startOfDay: Long, endOfDay: Long): List<SleepSession>
 }

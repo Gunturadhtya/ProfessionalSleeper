@@ -3,6 +3,7 @@ package com.gntr.professionalsleeper.di
 import android.content.Context
 import androidx.room.Room
 import com.gntr.professionalsleeper.data.local.AppDatabase
+import com.gntr.professionalsleeper.data.local.dao.SleepDebtDao
 import com.gntr.professionalsleeper.data.local.dao.SleepSessionDao
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
 import com.gntr.professionalsleeper.data.local.datastore.dataStore
@@ -12,9 +13,11 @@ import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import com.gntr.professionalsleeper.domain.auth.IAuthManager
 import com.gntr.professionalsleeper.domain.calendar.ICalendarSyncService
 import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
+import com.gntr.professionalsleeper.domain.repository.ITransactionRunner
 import com.gntr.professionalsleeper.framework.alarm.AlarmSchedulerImpl
 import com.gntr.professionalsleeper.framework.auth.AuthManagerImpl
 import com.gntr.professionalsleeper.framework.calendar.GoogleCalendarServiceImpl
+import com.gntr.professionalsleeper.framework.db.RoomTransactionRunner
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -77,5 +80,17 @@ object AppModule {
     @Singleton
     fun provideCalendarSyncService(@ApplicationContext context: Context): ICalendarSyncService {
         return GoogleCalendarServiceImpl(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSleepDebtDao(database: AppDatabase): SleepDebtDao {
+        return database.sleepDebtDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideTransactionRunner(database: AppDatabase): ITransactionRunner {
+        return RoomTransactionRunner(database)
     }
 }

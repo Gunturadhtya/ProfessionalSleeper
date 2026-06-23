@@ -31,4 +31,8 @@ class SleepSessionRepositoryImpl(
 
         return dao.getSessionsForDay(startOfDay, endOfDay)
     }
+
+    override suspend fun getSessionsSnapshotForDay(startOfDay: Long, endOfDay: Long): List<SleepSession> {
+        return dao.getSessionsSnapshotForDay(startOfDay, endOfDay)
+    }
 }

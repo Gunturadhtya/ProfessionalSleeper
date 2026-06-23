@@ -1,0 +1,19 @@
+package com.gntr.professionalsleeper.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.gntr.professionalsleeper.data.local.entity.SleepDebt
+
+@Dao
+interface SleepDebtDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertDebt(sleepDebt: SleepDebt)
+
+    @Query("SELECT * FROM sleep_debts WHERE isSynced = 0")
+    suspend fun getUnsyncedDebts(): List<SleepDebt>
+
+    @Query("UPDATE sleep_debts SET isSynced = 1 WHERE date IN (:dates)")
+    suspend fun markAsSynced(dates: List<String>)
+}

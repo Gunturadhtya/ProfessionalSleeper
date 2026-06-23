@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -16,18 +17,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import com.gntr.professionalsleeper.R
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
 import com.gntr.professionalsleeper.data.local.datastore.dataStore
+import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.framework.alarm.AlarmConstants.EXTRA_SESSION_ID
 import com.gntr.professionalsleeper.framework.alarm.AlarmService
-import com.gntr.professionalsleeper.ui.theme.ProfessionalSleeperTheme
 import com.gntr.professionalsleeper.framework.launcher.AppLauncherHelper
+import com.gntr.professionalsleeper.ui.theme.ProfessionalSleeperTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class RingingActivity : ComponentActivity() {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -46,10 +53,26 @@ class RingingActivity : ComponentActivity() {
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        val sessionId = intent.getIntExtra(EXTRA_SESSION_ID, -1)
+
         setContent {
             ProfessionalSleeperTheme {
+                val viewModel: RingingViewModel = hiltViewModel()
+                val currentSession by viewModel.currentSession.collectAsState()
+
+                LaunchedEffect(sessionId) {
+                    if (sessionId != -1) {
+                        viewModel.loadSession(sessionId)
+                    }
+                }
+
                 RingingScreen(
-                    onDismissClick = { handleDismissAlarm() }
+                    session = currentSession,
+                    onDismissClick = { handleDismissAlarm() },
+                    onSnoozeClick = { session ->
+                        viewModel.triggerSnooze(session)
+                        handleSnoozeAlarm()
+                    }
                 )
             }
         }
@@ -67,10 +90,21 @@ class RingingActivity : ComponentActivity() {
             finish()
         }
     }
+
+    private fun handleSnoozeAlarm() {
+        val stopIntent = Intent(this, AlarmService::class.java)
+        stopService(stopIntent)
+        finish()
+    }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun RingingScreen(onDismissClick: () -> Unit) {
+fun RingingScreen(
+    session: SleepSession?,
+    onDismissClick: () -> Unit,
+    onSnoozeClick: (SleepSession) -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.primaryContainer
@@ -96,19 +130,38 @@ fun RingingScreen(onDismissClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(64.dp))
 
-            Button(
-                onClick = onDismissClick,
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
-                ),
-                modifier = Modifier.size(width = 200.dp, height = 56.dp)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = stringResource(R.string.ringing_button_dismiss),
-                    style = MaterialTheme.typography.labelLarge
-                )
+                Button(
+                    onClick = onDismissClick,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    ),
+                    modifier = Modifier.height(56.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.ringing_button_dismiss),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+
+                if (session != null && session.snoozeCount < 2) {
+                    OutlinedButton(
+                        onClick = { onSnoozeClick(session) },
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.height(56.dp)
+                    ) {
+                        Text(
+                            text = "Snooze (${2 - session.snoozeCount} tersisa)",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
             }
         }
     }
