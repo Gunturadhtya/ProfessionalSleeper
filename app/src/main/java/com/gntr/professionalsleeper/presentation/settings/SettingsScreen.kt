@@ -4,16 +4,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.gntr.professionalsleeper.framework.launcher.AppInfo
-import com.gntr.professionalsleeper.framework.launcher.AppLauncherHelper
 import com.gntr.professionalsleeper.presentation.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,10 +22,26 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val targetAppPackage by viewModel.targetAppPackage.collectAsState()
+    val installedApps by viewModel.installedApps.collectAsState()
+    val listState = rememberLazyListState()
 
-    var installedApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     LaunchedEffect(Unit) {
-        installedApps = AppLauncherHelper.getInstalledApps(context)
+        viewModel.initializeAppList(context)
+    }
+
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            totalItems > 0 && lastVisibleItemIndex >= totalItems - 5
+        }
+    }
+
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) {
+            viewModel.loadNextAppPage(context)
+        }
     }
 
     Scaffold(
@@ -49,7 +63,10 @@ fun SettingsScreen(
                 modifier = Modifier.padding(16.dp)
             )
 
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState
+            ) {
                 items(installedApps, key = { it.packageName }) { app ->
                     val isSelected = app.packageName == targetAppPackage
 

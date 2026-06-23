@@ -3,6 +3,7 @@ package com.gntr.professionalsleeper.framework.launcher
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 
 object AppLauncherHelper {
     fun launchApp(context: Context, targetPackageName: String?): Boolean {
@@ -20,17 +21,21 @@ object AppLauncherHelper {
         }
     }
 
-    fun getInstalledApps(context: Context): List<AppInfo> {
+    fun getRawLauncherActivities(context: Context): List<ResolveInfo> {
         val intent = Intent(Intent.ACTION_MAIN, null).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
-        val resolveInfoList = context.packageManager.queryIntentActivities(intent, 0)
+        return context.packageManager.queryIntentActivities(intent, 0)
+            .sortedBy { it.activityInfo.packageName }
+    }
 
-        return resolveInfoList.map { resolveInfo ->
+    fun mapToAppInfo(context: Context, resolveInfos: List<ResolveInfo>): List<AppInfo> {
+        val packageManager = context.packageManager
+        return resolveInfos.map { resolveInfo ->
             AppInfo(
-                appName = resolveInfo.loadLabel(context.packageManager).toString(),
+                appName = resolveInfo.loadLabel(packageManager).toString(),
                 packageName = resolveInfo.activityInfo.packageName
             )
-        }.sortedBy { it.appName }
+        }
     }
 }
