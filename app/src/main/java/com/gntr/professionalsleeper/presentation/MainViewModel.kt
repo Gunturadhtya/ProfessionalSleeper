@@ -14,12 +14,16 @@ import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
 import com.gntr.professionalsleeper.framework.launcher.AppInfo
 import com.gntr.professionalsleeper.framework.launcher.AppLauncherHelper
+import com.gntr.professionalsleeper.presentation.schedule.sectograph.SectographMapper
+import com.gntr.professionalsleeper.presentation.schedule.sectograph.SectographSector
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -38,6 +42,8 @@ class MainViewModel @Inject constructor(
     private var currentPageIndex = 0
     private val pageSize = 20
     private var isFetchingApps = false
+    private val _isSyncing = MutableStateFlow(false)
+    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
     private val _installedApps = MutableStateFlow<List<AppInfo>>(emptyList())
     val installedApps: StateFlow<List<AppInfo>> = _installedApps.asStateFlow()
@@ -50,6 +56,18 @@ class MainViewModel @Inject constructor(
 
     val targetAppPackage: StateFlow<String?> = prefsRepo.targetAppPackageFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    val sleepSectors: StateFlow<List<SectographSector>> = repository.getSessionsForToday()
+        .map { sessions ->
+            SectographMapper.mapSleepSessionsToSectors(sessions)
+        }
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun scheduleNewSession(startTime: Long, endTime: Long, type: SessionType) {
@@ -107,6 +125,21 @@ class MainViewModel @Inject constructor(
             _installedApps.update { current -> current + mappedChunk }
             currentPageIndex = endIndex
             isFetchingApps = false
+        }
+    }
+
+    fun triggerCalendarSync() {
+        if (_isSyncing.value) return
+
+        _isSyncing.value = true
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // TODO: Delegasikan ke ICalendarSyncService.fetchUpcomingEvents
+                // Simulasi network delay
+                kotlinx.coroutines.delay(1500)
+            } finally {
+                _isSyncing.value = false
+            }
         }
     }
 }

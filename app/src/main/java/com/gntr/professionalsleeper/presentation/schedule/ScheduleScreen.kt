@@ -8,27 +8,27 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.gntr.professionalsleeper.data.local.entity.SessionType
 import com.gntr.professionalsleeper.data.local.entity.SleepSession
 import com.gntr.professionalsleeper.presentation.MainViewModel
+import com.gntr.professionalsleeper.presentation.schedule.sectograph.Sectograph
 import com.gntr.professionalsleeper.ui.theme.CoreSleepColor
 import com.gntr.professionalsleeper.ui.theme.JetBrainsMono
 import com.gntr.professionalsleeper.ui.theme.NapSleepColor
-import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
-import java.util.Date
 import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -38,9 +38,26 @@ fun ScheduleScreen(
     viewModel: MainViewModel,
     onNavigateToSettings: () -> Unit
 ) {
-    val sessions by viewModel.todaySessions.collectAsState()
+    val sessions by viewModel.todaySessions.collectAsStateWithLifecycle()
+    val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
+    val sleepSectors by viewModel.sleepSectors.collectAsStateWithLifecycle()
 
-    Scaffold(
+    val calendarSectors = emptyList<com.gntr.professionalsleeper.presentation.schedule.sectograph.SectographSector>()
+
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.PartiallyExpanded,
+            skipHiddenState = true
+        )
+    )
+
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 80.dp,
+        sheetContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+        sheetContent = { SleepAnalysisSheetContent() },
         topBar = {
             TopAppBar(
                 title = { Text("Circadian Precision", style = MaterialTheme.typography.headlineMedium) },
@@ -53,35 +70,85 @@ fun ScheduleScreen(
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            LargeFloatingActionButton(
-                onClick = {
-                    val now = System.currentTimeMillis()
-                    viewModel.scheduleNewSession(
-                        startTime = now,
-                        endTime = now + (20 * 60 * 1000), // hardcoded
-                        type = SessionType.NAP
-                    )
-                },
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Nap", modifier = Modifier.size(36.dp))
-            }
         }
     ) { paddingValues ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = isSyncing,
+            onRefresh = { viewModel.triggerCalendarSync() },
+            state = pullToRefreshState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(sessions, key = { it.id }) { session ->
-                SessionCard(session)
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 100.dp)
+            ) {
+                item {
+                    Sectograph(
+                        sleepSectors = sleepSectors,
+                        calendarSectors = calendarSectors,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                    )
+                }
+
+                items(sessions, key = { it.id }) { session ->
+                    SessionCard(session)
+                }
             }
-            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
+    }
+}
+
+@Composable
+private fun SleepAnalysisSheetContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .width(32.dp)
+                .height(4.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                    shape = RoundedCornerShape(2.dp)
+                )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Sleep Analysis",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = "Historical Data Visualization...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 

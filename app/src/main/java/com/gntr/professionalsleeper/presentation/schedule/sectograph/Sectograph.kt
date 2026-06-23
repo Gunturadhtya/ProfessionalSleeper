@@ -1,0 +1,137 @@
+package com.gntr.professionalsleeper.presentation.schedule.sectograph
+
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlin.math.cos
+import kotlin.math.sin
+
+@Composable
+fun Sectograph(
+    sleepSectors: List<SectographSector>,
+    calendarSectors: List<SectographSector>,
+    modifier: Modifier = Modifier
+) {
+    val textMeasurer = rememberTextMeasurer()
+
+    Spacer(
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .padding(16.dp)
+            .drawBehind {
+                val canvasWidth = size.width
+                val canvasHeight = size.height
+                val center = Offset(canvasWidth / 2, canvasHeight / 2)
+
+                val radius = (size.minDimension / 2f) - 36.dp.toPx()
+
+                rotate(degrees = -90f, pivot = center) {
+
+                    drawStaticLayer(radius, center, textMeasurer)
+
+                    val innerRadiusPx = radius * 0.6f
+                    val innerStrokeWidth = radius * 0.15f
+                    calendarSectors.forEach { sector ->
+                        drawSectorArc(sector, innerRadiusPx, innerStrokeWidth, center)
+                    }
+
+                    val outerRadiusPx = radius * 0.8f
+                    val outerStrokeWidth = radius * 0.2f
+                    sleepSectors.forEach { sector ->
+                        drawSectorArc(sector, outerRadiusPx, outerStrokeWidth, center)
+                    }
+                }
+            }
+    )
+}
+
+private fun DrawScope.drawStaticLayer(radius: Float, center: Offset, textMeasurer: TextMeasurer) {
+    drawCircle(
+        color = Color.LightGray.copy(alpha = 0.2f),
+        radius = radius,
+        center = center,
+        style = Stroke(width = 1.dp.toPx())
+    )
+
+    for (i in 0 until 24) {
+        val angle = i * 15f
+        val isMainHour = i % 6 == 0
+
+        val lineLength = if (isMainHour) 12.dp.toPx() else 6.dp.toPx()
+        val strokeWidth = if (isMainHour) 2.dp.toPx() else 1.dp.toPx()
+
+        rotate(degrees = angle, pivot = center) {
+            drawLine(
+                color = Color.Gray.copy(alpha = 0.5f),
+                start = Offset(center.x + radius - lineLength, center.y),
+                end = Offset(center.x + radius, center.y),
+                strokeWidth = strokeWidth
+            )
+        }
+    }
+
+    val labelRadius = radius + 24.dp.toPx()
+    val textStyle = TextStyle(fontSize = 12.sp, color = Color.Gray)
+    val hours = listOf(0, 6, 12, 18)
+
+    hours.forEach { hour ->
+        val angleDeg = (hour * 15f)
+        val angleRad = Math.toRadians(angleDeg.toDouble()).toFloat()
+
+        val x = center.x + labelRadius * cos(angleRad)
+        val y = center.y + labelRadius * sin(angleRad)
+
+        val textLayoutResult = textMeasurer.measure(
+            text = String.format("%02d:00", hour),
+            style = textStyle
+        )
+
+        rotate(degrees = 90f, pivot = Offset(x, y)) {
+            drawText(
+                textLayoutResult = textLayoutResult,
+                topLeft = Offset(
+                    x - (textLayoutResult.size.width / 2),
+                    y - (textLayoutResult.size.height / 2)
+                )
+            )
+        }
+    }
+}
+
+private fun DrawScope.drawSectorArc(
+    sector: SectographSector,
+    radiusPx: Float,
+    strokeWidthPx: Float,
+    center: Offset
+) {
+    val topLeft = Offset(center.x - radiusPx, center.y - radiusPx)
+    val size = Size(radiusPx * 2, radiusPx * 2)
+
+    drawArc(
+        color = sector.color,
+        startAngle = sector.startAngle,
+        sweepAngle = sector.sweepAngle,
+        useCenter = false,
+        topLeft = topLeft,
+        size = size,
+        style = Stroke(width = strokeWidthPx, cap = StrokeCap.Butt)
+    )
+}
