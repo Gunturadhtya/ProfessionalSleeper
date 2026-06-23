@@ -16,12 +16,15 @@ interface SleepSessionDao {
     @Update
     suspend fun updateSession(session: SleepSession)
 
-    @Query("SELECT * FROM sleep_sessions WHERE startTime >= :startOfDay AND startTime <= :endOfDay ORDER BY startTime ASC")
-    fun getSessionsForDay(startOfDay: Long, endOfDay: Long): Flow<List<SleepSession>>
+    @Query("SELECT * FROM sleep_sessions ORDER BY startTime ASC")
+    fun getAllSessions(): Flow<List<SleepSession>>
+
+    @Query("SELECT * FROM sleep_sessions ORDER BY startTime ASC")
+    suspend fun getAllSessionsSnapshot(): List<SleepSession>
 
     @Query("SELECT * FROM sleep_sessions WHERE id = :id")
     suspend fun getSessionById(id: Int): SleepSession?
 
-    @Query("SELECT * FROM sleep_sessions WHERE startTime >= :startOfDay AND startTime <= :endOfDay")
-    suspend fun getSessionsSnapshotForDay(startOfDay: Long, endOfDay: Long): List<SleepSession>
+    @Query("DELETE FROM sleep_sessions")
+    suspend fun deleteAllSessions()
 }
