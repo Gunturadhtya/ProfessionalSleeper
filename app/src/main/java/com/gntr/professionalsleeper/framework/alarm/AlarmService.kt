@@ -53,13 +53,6 @@ class AlarmService: Service() {
         Timber.d("Menjalankan startForeground dengan ID 1001")
         startForeground(1001, notification)
 
-        Timber.i("Mencoba memaksa peluncuran RingingActivity dari background")
-        try {
-            startActivity(fullScreenIntent)
-        } catch (e: Exception) {
-            Timber.e(e, "Gagal memaksa buka UI Alarm (Restriksi OS terlalu ketat)")
-        }
-
         return START_STICKY
     }
 
