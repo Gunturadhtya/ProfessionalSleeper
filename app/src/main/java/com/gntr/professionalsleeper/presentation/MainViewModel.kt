@@ -127,13 +127,6 @@ class MainViewModel @Inject constructor(
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /**
-     * "Today's Schedule" as a single chronological list mixing sleep sessions
-     * and synced calendar events as cards, sorted by start time. Calendar
-     * events were previously only rendered as faint arcs on the Sectograph —
-     * fetching them successfully never put them anywhere a user would see
-     * them as a distinct item, which is what this exposes.
-     */
     @RequiresApi(Build.VERSION_CODES.O)
     val todayScheduleItems: StateFlow<List<ScheduleListItem>> =
         combine(
@@ -152,7 +145,17 @@ class MainViewModel @Inject constructor(
                     sortKey = Instant.ofEpochMilli(event.startTime).atZone(ZoneId.systemDefault())
                 )
             }
-            (sessionItems + eventItems).sortedBy { it.sortKey }
+
+            val sortedItems = (sessionItems + eventItems).sortedBy { it.sortKey }
+            val groupedByDate = sortedItems.groupBy { it.sortKey.toLocalDate() }
+
+            val result = mutableListOf<ScheduleListItem>()
+            groupedByDate.forEach { (date, items) ->
+                val sessionCount = items.count { it is ScheduleListItem.Session }
+                result.add(ScheduleListItem.DateHeader(date, sessionCount, items.first().sortKey))
+                result.addAll(items)
+            }
+            result
         }
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

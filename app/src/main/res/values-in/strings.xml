@@ -44,6 +44,7 @@
     <string name="status_done">Selesai</string>
     <string name="analysis_title">Analisis Tidur</string>
     <string name="analysis_placeholder">Visualisasi Data Historis…</string>
+    <string name="schedule_header_upcoming">Jadwal Mendatang</string>
 
     <!-- AuthScreen UI -->
     <string name="auth_subtitle">Sinkronkan jadwal polyphasic Anda dengan kalender Anda.</string>

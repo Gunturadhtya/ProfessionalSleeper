@@ -1,5 +1,6 @@
 package com.gntr.professionalsleeper.presentation.schedule
 
+import java.time.LocalDate
 import java.time.ZonedDateTime
 
 sealed interface ScheduleListItem {
@@ -12,5 +13,9 @@ sealed interface ScheduleListItem {
 
     data class CalendarEvent(val event: CalendarEventUiModel, override val sortKey: ZonedDateTime) : ScheduleListItem {
         override val itemKey: String get() = "event:${event.id}"
+    }
+
+    data class DateHeader(val date: LocalDate, val sessionCount: Int, override val sortKey: ZonedDateTime) : ScheduleListItem {
+        override val itemKey: String get() = "header:${date}"
     }
 }

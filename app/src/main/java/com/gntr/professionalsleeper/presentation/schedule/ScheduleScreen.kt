@@ -35,6 +35,8 @@ import com.gntr.professionalsleeper.presentation.MainViewModel
 import com.gntr.professionalsleeper.presentation.schedule.sectograph.Sectograph
 import com.gntr.professionalsleeper.ui.theme.CalendarEventColor
 import com.gntr.professionalsleeper.ui.theme.JetBrainsMono
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -129,9 +131,13 @@ fun ScheduleScreen(
                             .padding(vertical = 16.dp)
                     )
                 }
-
                 item {
-                    TodayScheduleHeader(sessionCount = scheduleItems.size)
+                    Text(
+                        text = stringResource(R.string.schedule_header_upcoming),
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 if (scheduleItems.isEmpty()) {
@@ -139,6 +145,7 @@ fun ScheduleScreen(
                 } else {
                     items(scheduleItems, key = { it.itemKey }) { item ->
                         when (item) {
+                            is ScheduleListItem.DateHeader -> DateSectionHeader(item.date, item.sessionCount)
                             is ScheduleListItem.Session -> SessionCard(item.session)
                             is ScheduleListItem.CalendarEvent -> CalendarEventCard(item.event)
                         }
@@ -184,15 +191,18 @@ private fun ResetSessionDialog(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun TodayScheduleHeader(sessionCount: Int) {
+private fun DateSectionHeader(date: java.time.LocalDate, sessionCount: Int) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = stringResource(R.string.schedule_header_today),
+            text = date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface

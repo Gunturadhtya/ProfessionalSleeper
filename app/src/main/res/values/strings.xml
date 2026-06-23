@@ -44,6 +44,7 @@
     <string name="status_done">Done</string>
     <string name="analysis_title">Sleep Analysis</string>
     <string name="analysis_placeholder">Historical Data Visualization…</string>
+    <string name="schedule_header_upcoming">Upcoming Schedule</string>
 
     <!-- AuthScreen UI -->
     <string name="auth_subtitle">Synchronize your polyphasic schedule with your calendar.</string>
