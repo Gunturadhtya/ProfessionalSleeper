@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 val CoreSleepColor = Color(0xFF24389C)
 val NapSleepColor = Color(0xFF004C44)
 val SleepDebtColor = Color(0xFFE91E63)
+val CalendarEventColor = Color(0xFF5C6370)
 
 val PrimaryLight = Color(0xFF24389C)
 val OnPrimaryLight = Color(0xFFFFFFFF)

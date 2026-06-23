@@ -71,6 +71,9 @@ class AuthManagerImpl(
 
             Timber.d("Identity verification successful for user.")
 
+            val userEmail = extractEmailFromIdToken(googleIdCredential.idToken)
+                ?: googleIdCredential.id
+
             val authRequest = AuthorizationRequest.builder()
                 .setRequestedScopes(listOf(Scope(CalendarScopes.CALENDAR_READONLY)))
                 .requestOfflineAccess(BuildConfig.ANDROID_CLIENT_ID)
@@ -87,7 +90,7 @@ class AuthManagerImpl(
 
             secureTokenManager.saveTokens(
                 id = googleIdCredential.id,
-                email = googleIdCredential.id,
+                email = userEmail,
                 idToken = googleIdCredential.idToken,
                 displayName = googleIdCredential.displayName,
                 photoUrl = googleIdCredential.profilePictureUri?.toString()
@@ -96,7 +99,7 @@ class AuthManagerImpl(
             Result.success(
                 AuthAccount(
                     id = googleIdCredential.id,
-                    email = googleIdCredential.id,
+                    email = userEmail,
                     idToken = googleIdCredential.idToken,
                     serverAuthCode = authResult.serverAuthCode,
                     displayName = googleIdCredential.displayName,
@@ -112,7 +115,7 @@ class AuthManagerImpl(
     override suspend fun getSignedInAccount(): AuthAccount? = withContext(Dispatchers.IO) {
         val idToken = secureTokenManager.getIdToken()
         val userId = secureTokenManager.getUserId()
-        val userEmail = secureTokenManager.getUserEmail()
+        var userEmail = secureTokenManager.getUserEmail()
 
         if (idToken.isNullOrEmpty() || userId.isNullOrEmpty() || userEmail.isNullOrEmpty()) {
             return@withContext null
@@ -123,6 +126,23 @@ class AuthManagerImpl(
             return@withContext null
         }
 
+        if (!userEmail.contains("@")) {
+            val realEmail = extractEmailFromIdToken(idToken)
+            if (realEmail != null) {
+                userEmail = realEmail
+                secureTokenManager.saveTokens(
+                    id = userId,
+                    email = realEmail,
+                    idToken = idToken,
+                    displayName = secureTokenManager.getDisplayName(),
+                    photoUrl = secureTokenManager.getPhotoUrl()
+                )
+            } else {
+                secureTokenManager.clearTokens()
+                return@withContext null
+            }
+        }
+
         AuthAccount(
             id = userId,
             email = userEmail,
@@ -130,6 +150,34 @@ class AuthManagerImpl(
             displayName = secureTokenManager.getDisplayName(),
             photoUrl = secureTokenManager.getPhotoUrl()
         )
+    }
+
+    /**
+     * Re-runs the authorization request for the already-consented Calendar
+     * scope. When the user has previously granted access, this resolves
+     * silently (no PendingIntent, no UI) and returns a fresh access token —
+     * this is the correct way to get a usable bearer token for Credential
+     * Manager / One Tap sign-ins, since no on-device AccountManager Account
+     * is ever created for them.
+     */
+    override suspend fun getCalendarAccessToken(): String? = withContext(Dispatchers.IO) {
+        try {
+            val authRequest = AuthorizationRequest.builder()
+                .setRequestedScopes(listOf(Scope(CalendarScopes.CALENDAR_READONLY)))
+                .build()
+
+            val authResult = authorizationClient.authorize(authRequest).await()
+
+            if (authResult.hasResolution()) {
+                Timber.w("Calendar authorization requires user resolution; cannot resolve silently in the background.")
+                return@withContext null
+            }
+
+            authResult.accessToken
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to silently obtain a Calendar access token.")
+            null
+        }
     }
 
     override suspend fun signOut(): Unit = withContext(Dispatchers.IO) {
@@ -189,6 +237,22 @@ class AuthManagerImpl(
         } catch (e: Exception) {
             Timber.e(e, "Cryptographic JWT validation failed.")
             false
+        }
+    }
+
+    private fun extractEmailFromIdToken(idToken: String): String? {
+        return try {
+            val split = idToken.split(".")
+            if (split.size < 2) return null
+
+            val payloadBytes = Base64.decode(split[1], Base64.URL_SAFE)
+            val payloadString = String(payloadBytes, Charsets.UTF_8)
+            val jsonObject = JSONObject(payloadString)
+
+            jsonObject.optString("email").takeIf { it.isNotEmpty() }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to decode JWT to extract email")
+            null
         }
     }
 }

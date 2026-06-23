@@ -3,6 +3,7 @@ package com.gntr.professionalsleeper.di
 import android.content.Context
 import androidx.room.Room
 import com.gntr.professionalsleeper.data.local.AppDatabase
+import com.gntr.professionalsleeper.data.local.dao.CalendarEventDao
 import com.gntr.professionalsleeper.data.local.dao.SleepDebtDao
 import com.gntr.professionalsleeper.data.local.dao.SleepSessionDao
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
@@ -92,5 +93,11 @@ object AppModule {
     @Singleton
     fun provideTransactionRunner(database: AppDatabase): ITransactionRunner {
         return RoomTransactionRunner(database)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCalendarEventDao(database: AppDatabase): CalendarEventDao {
+        return database.calendarEventDao()
     }
 }

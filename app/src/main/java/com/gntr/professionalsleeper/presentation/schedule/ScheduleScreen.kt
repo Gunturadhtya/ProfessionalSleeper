@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
@@ -30,17 +31,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gntr.professionalsleeper.R
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SessionType
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
 import com.gntr.professionalsleeper.presentation.MainViewModel
 import com.gntr.professionalsleeper.presentation.schedule.sectograph.Sectograph
-import com.gntr.professionalsleeper.ui.theme.CoreSleepColor
+import com.gntr.professionalsleeper.ui.theme.CalendarEventColor
 import com.gntr.professionalsleeper.ui.theme.JetBrainsMono
-import com.gntr.professionalsleeper.ui.theme.NapSleepColor
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,9 +45,10 @@ fun ScheduleScreen(
     onNavigateToProfile: () -> Unit,
     onResetComplete: () -> Unit
 ) {
-    val sessions by viewModel.todaySessions.collectAsStateWithLifecycle()
+    val scheduleItems by viewModel.todayScheduleItems.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     val sleepSectors by viewModel.sleepSectors.collectAsStateWithLifecycle()
+    val calendarSectors by viewModel.calendarSectors.collectAsStateWithLifecycle()
 
     var showResetDialog by remember { mutableStateOf(false) }
 
@@ -62,8 +57,6 @@ fun ScheduleScreen(
             onResetComplete()
         }
     }
-
-    val calendarSectors = emptyList<com.gntr.professionalsleeper.presentation.schedule.sectograph.SectographSector>()
 
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
@@ -138,14 +131,17 @@ fun ScheduleScreen(
                 }
 
                 item {
-                    TodayScheduleHeader(sessionCount = sessions.size)
+                    TodayScheduleHeader(sessionCount = scheduleItems.size)
                 }
 
-                if (sessions.isEmpty()) {
+                if (scheduleItems.isEmpty()) {
                     item { EmptyScheduleCard() }
                 } else {
-                    items(sessions, key = { it.id }) { session ->
-                        SessionCard(session)
+                    items(scheduleItems, key = { it.itemKey }) { item ->
+                        when (item) {
+                            is ScheduleListItem.Session -> SessionCard(item.session)
+                            is ScheduleListItem.CalendarEvent -> CalendarEventCard(item.event)
+                        }
                     }
                 }
             }
@@ -238,29 +234,8 @@ private fun EmptyScheduleCard() {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SessionCard(session: SleepSession) {
-    val timeFormat = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
-    val startStr = session.startTime.format(timeFormat)
-    val endStr = session.endTime.format(timeFormat)
-
-    val durationMinutes = java.time.Duration.between(
-        session.startTime.toInstant(),
-        session.endTime.toInstant()
-    ).toMinutes()
-
-    val now = ZonedDateTime.now()
-    val isUpcoming = session.startTime.isAfter(now)
-    val isOngoing = !session.startTime.isAfter(now) && session.endTime.isAfter(now)
-
-    val accentColor = if (session.type == SessionType.CORE) CoreSleepColor else NapSleepColor
-    val typeLabel = if (session.type == SessionType.CORE) {
-        stringResource(R.string.session_type_core)
-    } else {
-        stringResource(R.string.session_type_nap)
-    }
-
+fun SessionCard(session: SleepSessionUiModel) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -272,7 +247,7 @@ fun SessionCard(session: SleepSession) {
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(6.dp)
-                    .background(accentColor)
+                    .background(session.accentColor)
             )
 
             Column(
@@ -287,21 +262,20 @@ fun SessionCard(session: SleepSession) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = typeLabel,
+                        text = session.typeLabel,
                         style = MaterialTheme.typography.labelMedium,
-                        color = accentColor,
+                        color = session.accentColor,
                         fontWeight = FontWeight.SemiBold
                     )
                     StatusChip(
-                        isOngoing = isOngoing,
-                        isUpcoming = isUpcoming,
-                        status = session.status,
-                        accentColor = accentColor
+                        label = session.statusLabel,
+                        bgColor = session.statusBgColor,
+                        textColor = session.statusTextColor
                     )
                 }
 
                 Text(
-                    text = "$startStr – $endStr",
+                    text = session.timeRange,
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontFamily = JetBrainsMono
                     ),
@@ -309,7 +283,7 @@ fun SessionCard(session: SleepSession) {
                 )
 
                 Text(
-                    text = stringResource(R.string.session_duration, durationMinutes),
+                    text = session.durationText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -319,35 +293,58 @@ fun SessionCard(session: SleepSession) {
 }
 
 @Composable
-private fun StatusChip(
-    isOngoing: Boolean,
-    isUpcoming: Boolean,
-    status: SessionStatus,
-    accentColor: Color
-) {
-    val (label, bgColor, textColor) = when {
-        isOngoing -> Triple(
-            stringResource(R.string.status_ongoing),
-            accentColor.copy(alpha = 0.15f),
-            accentColor
-        )
-        isUpcoming && status == SessionStatus.SCHEDULED -> Triple(
-            stringResource(R.string.status_upcoming),
-            MaterialTheme.colorScheme.secondaryContainer,
-            MaterialTheme.colorScheme.onSecondaryContainer
-        )
-        status == SessionStatus.COMPLETED -> Triple(
-            stringResource(R.string.status_done),
-            MaterialTheme.colorScheme.surfaceVariant,
-            MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        else -> Triple(
-            status.name,
-            MaterialTheme.colorScheme.surfaceVariant,
-            MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+private fun CalendarEventCard(event: CalendarEventUiModel) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
 
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(6.dp)
+                    .background(CalendarEventColor)
+            )
+
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                    .weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Event,
+                    contentDescription = null,
+                    tint = CalendarEventColor
+                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = event.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = event.timeRange,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = JetBrainsMono),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusChip(
+    label: String,
+    bgColor: Color,
+    textColor: Color
+) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(50))

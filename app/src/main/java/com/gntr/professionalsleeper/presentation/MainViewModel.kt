@@ -1,6 +1,5 @@
 package com.gntr.professionalsleeper.presentation
 
-import CalendarSyncWorker
 import android.content.Context
 import android.content.pm.ResolveInfo
 import android.os.Build
@@ -14,47 +13,58 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.gntr.professionalsleeper.data.local.dao.CalendarEventDao
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
 import com.gntr.professionalsleeper.data.local.entity.SessionStatus
 import com.gntr.professionalsleeper.data.local.entity.SessionType
 import com.gntr.professionalsleeper.data.local.entity.SleepSession
 import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
+import com.gntr.professionalsleeper.domain.auth.IAuthManager
 import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
+import com.gntr.professionalsleeper.framework.calendar.CalendarSyncWorker
 import com.gntr.professionalsleeper.framework.launcher.AppInfo
 import com.gntr.professionalsleeper.framework.launcher.AppLauncherHelper
+import com.gntr.professionalsleeper.presentation.schedule.CalendarEventUiMapper
+import com.gntr.professionalsleeper.presentation.schedule.ScheduleListItem
+import com.gntr.professionalsleeper.presentation.schedule.SleepSessionUiMapper
+import com.gntr.professionalsleeper.presentation.schedule.SleepSessionUiModel
 import com.gntr.professionalsleeper.presentation.schedule.sectograph.SectographMapper
 import com.gntr.professionalsleeper.presentation.schedule.sectograph.SectographSector
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repository: ISleepSessionRepository,
     private val alarmScheduler: IAlarmScheduler,
-    private val prefsRepo: AppPreferencesRepository
+    private val prefsRepo: AppPreferencesRepository,
+    private val calendarEventDao: CalendarEventDao,
+    private val authManager: IAuthManager
 ) : ViewModel() {
 
     private var allResolveInfos = emptyList<ResolveInfo>()
     private var currentPageIndex = 0
     private val pageSize = 20
     private var isFetchingApps = false
-
-    private val _isSyncing = MutableStateFlow(false)
-    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
     private val _resetEvents = Channel<Unit>(Channel.BUFFERED)
     val resetEvents = _resetEvents.receiveAsFlow()
@@ -65,14 +75,13 @@ class MainViewModel @Inject constructor(
     val targetAppPackage: StateFlow<String?> = prefsRepo.targetAppPackageFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    val todaySessions: StateFlow<List<SleepSession>> =
-        repository.getSessionsForScheduleDisplay()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList()
-            )
+    val isSyncing: StateFlow<Boolean> = WorkManager.getInstance(context)
+        .getWorkInfosForUniqueWorkLiveData("ImmediateCalendarSync")
+        .asFlow()
+        .map { workInfos ->
+            workInfos.any { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     @RequiresApi(Build.VERSION_CODES.O)
     val sleepSectors: StateFlow<List<SectographSector>> =
@@ -84,6 +93,69 @@ class MainViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptyList()
             )
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    val todayUiSessions: StateFlow<List<SleepSessionUiModel>> =
+        repository.getSessionsForScheduleDisplay()
+            .map { sessions ->
+                sessions.map { SleepSessionUiMapper.mapToUiModel(it, context) }
+            }
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getStartOfTodayMilli(): Long {
+        return LocalDate.now(ZoneId.systemDefault())
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getEndOfTomorrowMilli(): Long {
+        return LocalDate.now(ZoneId.systemDefault())
+            .plusDays(2)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli() - 1
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    val calendarSectors: StateFlow<List<SectographSector>> =
+        calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfTomorrowMilli())
+            .map { events -> SectographMapper.mapCalendarEventsToSectors(events) }
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * "Today's Schedule" as a single chronological list mixing sleep sessions
+     * and synced calendar events as cards, sorted by start time. Calendar
+     * events were previously only rendered as faint arcs on the Sectograph —
+     * fetching them successfully never put them anywhere a user would see
+     * them as a distinct item, which is what this exposes.
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    val todayScheduleItems: StateFlow<List<ScheduleListItem>> =
+        combine(
+            repository.getSessionsForScheduleDisplay(),
+            calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfTomorrowMilli())
+        ) { sessions, events ->
+            val sessionItems = sessions.map { session ->
+                ScheduleListItem.Session(
+                    session = SleepSessionUiMapper.mapToUiModel(session, context),
+                    sortKey = session.startTime
+                )
+            }
+            val eventItems = events.map { event ->
+                ScheduleListItem.CalendarEvent(
+                    event = CalendarEventUiMapper.mapToUiModel(event),
+                    sortKey = Instant.ofEpochMilli(event.startTime).atZone(ZoneId.systemDefault())
+                )
+            }
+            (sessionItems + eventItems).sortedBy { it.sortKey }
+        }
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun scheduleNewSession(startTime: Long, endTime: Long, type: SessionType) {
@@ -142,18 +214,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun triggerCalendarSync() {
-        if (_isSyncing.value) return
-        _isSyncing.value = true
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                kotlinx.coroutines.delay(1500)
-            } finally {
-                _isSyncing.value = false
-            }
-        }
-    }
-
     fun resetSleepSession() {
         viewModelScope.launch {
             val deletedSessions = repository.clearAllSessions()
@@ -163,26 +223,25 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun getSyncState(context: Context): StateFlow<Boolean> {
-        return WorkManager.getInstance(context)
-            .getWorkInfosForUniqueWorkLiveData("ImmediateCalendarSync")
-            .asFlow()
-            .map { workInfos ->
-                workInfos.any { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED }
+    fun triggerCalendarSync() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val account = authManager.getSignedInAccount()
+            val accountEmail = account?.email
+
+            if (accountEmail != null) {
+                val syncRequest = OneTimeWorkRequestBuilder<CalendarSyncWorker>()
+                    .setInputData(workDataOf("account_email" to accountEmail))
+                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                    .build()
+
+                WorkManager.getInstance(context).enqueueUniqueWork(
+                    "ImmediateCalendarSync",
+                    ExistingWorkPolicy.REPLACE,
+                    syncRequest
+                )
+            } else {
+                Timber.w("Calendar sync aborted: No valid signed-in account found.")
             }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-    }
-
-    fun triggerCalendarSync(context: Context, accountEmail: String) {
-        val syncRequest = OneTimeWorkRequestBuilder<CalendarSyncWorker>()
-            .setInputData(workDataOf("account_email" to accountEmail))
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            "ImmediateCalendarSync",
-            ExistingWorkPolicy.REPLACE,
-            syncRequest
-        )
+        }
     }
 }

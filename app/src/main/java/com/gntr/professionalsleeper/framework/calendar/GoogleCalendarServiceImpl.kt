@@ -1,14 +1,13 @@
 package com.gntr.professionalsleeper.framework.calendar
 
 import android.content.Context
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.gntr.professionalsleeper.domain.calendar.CalendarEvent
 import com.gntr.professionalsleeper.domain.calendar.ICalendarSyncService
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.client.util.DateTime
 import com.google.api.services.calendar.Calendar
-import com.google.api.services.calendar.CalendarScopes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -21,18 +20,14 @@ class GoogleCalendarServiceImpl(
     private val jsonFactory = GsonFactory.getDefaultInstance()
 
     override suspend fun fetchUpcomingEvents(
-        accountEmail: String,
+        accessToken: String,
         timeMin: Long,
         timeMax: Long
     ): Result<List<CalendarEvent>> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("Initiating Google Calendar sync for account: $accountEmail")
+            Timber.d("Initiating Google Calendar sync using granted access token.")
 
-            val credential = GoogleAccountCredential.usingOAuth2(
-                context, listOf(CalendarScopes.CALENDAR_READONLY)
-            ).apply {
-                selectedAccountName = accountEmail
-            }
+            val credential = GoogleCredential().setAccessToken(accessToken)
 
             val service = Calendar.Builder(transport, jsonFactory, credential)
                 .setApplicationName("ProfessionalSleeper")
