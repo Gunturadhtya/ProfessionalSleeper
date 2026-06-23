@@ -49,7 +49,7 @@ fun ScheduleScreen(
     onNavigateToProfile: () -> Unit,
     onResetComplete: () -> Unit
 ) {
-    val scheduleItems by viewModel.todayScheduleItems.collectAsStateWithLifecycle()
+    val scheduleItems by viewModel.upcomingScheduleItems.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     val sleepSectors by viewModel.sleepSectors.collectAsStateWithLifecycle()
     val calendarSectors by viewModel.calendarSectors.collectAsStateWithLifecycle()

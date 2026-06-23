@@ -3,7 +3,7 @@ package com.gntr.professionalsleeper.presentation.schedule
 import androidx.compose.ui.graphics.Color
 
 data class SleepSessionUiModel(
-    val id: Int,
+    val id: Long,
     val timeRange: String,
     val durationText: String,
     val typeLabel: String,

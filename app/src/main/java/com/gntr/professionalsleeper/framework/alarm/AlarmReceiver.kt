@@ -32,8 +32,8 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Timber.d("onReceive dipicu oleh AlarmManager")
 
-        val sessionId = intent.getIntExtra(EXTRA_SESSION_ID, -1)
-        if (sessionId == -1) {
+        val sessionId = intent.getLongExtra(EXTRA_SESSION_ID, -1L)
+        if (sessionId == -1L) {
             Timber.e("Pemicu diabaikan: EXTRA_SESSION_ID bernilai -1")
             return
         }
@@ -47,48 +47,6 @@ class AlarmReceiver : BroadcastReceiver() {
             context.startForegroundService(serviceIntent)
         } else {
             context.startService(serviceIntent)
-        }
-
-        scheduleNextDaySession(context, sessionId)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun scheduleNextDaySession(context: Context, firedSessionId: Int) {
-        val pendingResult = goAsync()
-
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            AlarmReceiverEntryPoint::class.java
-        )
-        val dao = entryPoint.sleepSessionDao()
-        val scheduler = entryPoint.alarmScheduler()
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val firedSession: SleepSession = dao.getSessionById(firedSessionId)
-                    ?: run {
-                        Timber.e("Sesi $firedSessionId tidak ditemukan, tidak bisa menjadwalkan ulang")
-                        return@launch
-                    }
-
-                val nextSession = firedSession.copy(
-                    id = 0,
-                    startTime = firedSession.startTime.plusDays(1),
-                    endTime = firedSession.endTime.plusDays(1),
-                    status = SessionStatus.SCHEDULED,
-                    snoozeCount = 0
-                )
-
-                val insertedId = dao.insertSession(nextSession)
-                val nextSessionWithId = nextSession.copy(id = insertedId.toInt())
-                scheduler.scheduleAlarm(nextSessionWithId)
-
-                Timber.i("Sesi berikutnya dijadwalkan: id=$insertedId, endTime=${nextSessionWithId.endTime}")
-            } catch (e: Exception) {
-                Timber.e(e, "Gagal menjadwalkan sesi berikutnya")
-            } finally {
-                pendingResult.finish()
-            }
         }
     }
 }

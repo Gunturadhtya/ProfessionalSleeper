@@ -86,7 +86,7 @@ class SleepSessionRepositoryImpl(
         }
     }
 
-    override suspend fun getSessionById(id: Int): SleepSession? = dao.getSessionById(id)
+    override suspend fun getSessionById(id: Long): SleepSession? = dao.getSessionById(id)
 
     override suspend fun clearAllSessions(): List<SleepSession> {
         val allSessions = dao.getAllSessionsSnapshot()

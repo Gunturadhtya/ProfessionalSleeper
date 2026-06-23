@@ -24,7 +24,7 @@ class RingingViewModel @Inject constructor(
     private val _currentSession = MutableStateFlow<SleepSession?>(null)
     val currentSession: StateFlow<SleepSession?> = _currentSession.asStateFlow()
 
-    fun loadSession(sessionId: Int) {
+    fun loadSession(sessionId: Long) {
         viewModelScope.launch {
             _currentSession.value = sleepSessionDao.getSessionById(sessionId)
         }

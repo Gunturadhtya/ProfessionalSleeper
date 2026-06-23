@@ -23,7 +23,7 @@ interface SleepSessionDao {
     suspend fun getAllSessionsSnapshot(): List<SleepSession>
 
     @Query("SELECT * FROM sleep_sessions WHERE id = :id")
-    suspend fun getSessionById(id: Int): SleepSession?
+    suspend fun getSessionById(id: Long): SleepSession?
 
     @Query("DELETE FROM sleep_sessions")
     suspend fun deleteAllSessions()

@@ -9,7 +9,7 @@ interface ISleepSessionRepository {
     fun getSessionsForToday(): Flow<List<SleepSession>>
     fun getSessionsForScheduleDisplay(): Flow<List<SleepSession>>
     suspend fun getSessionsSnapshotForDay(startOfDay: Long, endOfDay: Long): List<SleepSession>
-    suspend fun getSessionById(id: Int): SleepSession?
+    suspend fun getSessionById(id: Long): SleepSession?
     suspend fun clearAllSessions(): List<SleepSession>
     fun getSessionsForTimeframe(startEpochMilli: Long, endEpochMilli: Long): Flow<List<SleepSession>>
     suspend fun getSessionsSnapshotForTimeframe(startEpochMilli: Long, endEpochMilli: Long): List<SleepSession>

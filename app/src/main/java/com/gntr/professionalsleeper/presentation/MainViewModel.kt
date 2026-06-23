@@ -83,16 +83,6 @@ class MainViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    val sleepSectors: StateFlow<List<SectographSector>> =
-        repository.getSessionsForScheduleDisplay()
-            .map { sessions -> SectographMapper.mapSleepSessionsToSectors(sessions) }
-            .flowOn(Dispatchers.Default)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList()
-            )
 
     @RequiresApi(Build.VERSION_CODES.O)
     val todayUiSessions: StateFlow<List<SleepSessionUiModel>> =
@@ -111,27 +101,39 @@ class MainViewModel @Inject constructor(
             .toEpochMilli()
     }
 
+    // Updated to support dynamic day offsets
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun getEndOfTomorrowMilli(): Long {
+    private fun getEndOfDayOffsetMilli(daysOffset: Long): Long {
         return LocalDate.now(ZoneId.systemDefault())
-            .plusDays(2)
+            .plusDays(daysOffset + 1)
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli() - 1
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
+    val sleepSectors: StateFlow<List<SectographSector>> =
+        repository.getSessionsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(2))
+            .map { sessions -> SectographMapper.mapSleepSessionsToSectors(sessions) }
+            .flowOn(Dispatchers.Default)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+
+    @RequiresApi(Build.VERSION_CODES.O)
     val calendarSectors: StateFlow<List<SectographSector>> =
-        calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfTomorrowMilli())
+        calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(2))
             .map { events -> SectographMapper.mapCalendarEventsToSectors(events) }
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @RequiresApi(Build.VERSION_CODES.O)
-    val todayScheduleItems: StateFlow<List<ScheduleListItem>> =
+    val upcomingScheduleItems: StateFlow<List<ScheduleListItem>> =
         combine(
-            repository.getSessionsForScheduleDisplay(),
-            calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfTomorrowMilli())
+            repository.getSessionsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(2)),
+            calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(2))
         ) { sessions, events ->
             val sessionItems = sessions.map { session ->
                 ScheduleListItem.Session(
@@ -170,7 +172,7 @@ class MainViewModel @Inject constructor(
                 status = SessionStatus.SCHEDULED
             )
             val id = repository.insertSession(session)
-            alarmScheduler.scheduleAlarm(session.copy(id = id.toInt()))
+            alarmScheduler.scheduleAlarm(session.copy(id = id))
         }
     }
 
@@ -191,7 +193,7 @@ class MainViewModel @Inject constructor(
                 status = SessionStatus.SCHEDULED
             )
             val id = repository.insertSession(debugSession)
-            alarmScheduler.scheduleAlarm(debugSession.copy(id = id.toInt()))
+            alarmScheduler.scheduleAlarm(debugSession.copy(id = id))
         }
     }
 

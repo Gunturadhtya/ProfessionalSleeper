@@ -53,7 +53,7 @@ class RingingActivity : ComponentActivity() {
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        val sessionId = intent.getIntExtra(EXTRA_SESSION_ID, -1)
+        val sessionId = intent.getLongExtra(EXTRA_SESSION_ID, -1L)
 
         setContent {
             ProfessionalSleeperTheme {
@@ -61,7 +61,7 @@ class RingingActivity : ComponentActivity() {
                 val currentSession by viewModel.currentSession.collectAsState()
 
                 LaunchedEffect(sessionId) {
-                    if (sessionId != -1) {
+                    if (sessionId != -1L) {
                         viewModel.loadSession(sessionId)
                     }
                 }

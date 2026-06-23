@@ -19,6 +19,9 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val TARGET_APP_PACKAGE = stringPreferencesKey("target_app_package")
         val IS_SETUP_COMPLETE = booleanPreferencesKey("is_setup_complete")
         val CORE_SLEEP_TARGET = intPreferencesKey("core_sleep_target")
+        val EVERYMAN_TYPE = stringPreferencesKey("everyman_type")
+        val WAKE_UP_HOUR = intPreferencesKey("wake_up_hour")
+        val WAKE_UP_MINUTE = intPreferencesKey("wake_up_minute")
     }
 
     val targetAppPackageFlow: Flow<String?> = dataStore.data.map { preferences ->
@@ -26,6 +29,12 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
     }
 
     val isSetupCompleteFlow: Flow<Boolean> = dataStore.data.map { it[IS_SETUP_COMPLETE] ?: false }
+
+    val everymanTypeFlow: Flow<String?> = dataStore.data.map { it[EVERYMAN_TYPE] }
+
+    val wakeUpHourFlow: Flow<Int?> = dataStore.data.map { it[WAKE_UP_HOUR] }
+
+    val wakeUpMinuteFlow: Flow<Int?> = dataStore.data.map { it[WAKE_UP_MINUTE] }
 
     suspend fun saveTargetAppPackage(packageName: String) {
         dataStore.edit { preferences ->
@@ -39,5 +48,16 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     suspend fun saveCoreSleepTarget(minutes: Int) {
         dataStore.edit { it[CORE_SLEEP_TARGET] = minutes }
+    }
+
+    suspend fun saveEverymanType(type: String) {
+        dataStore.edit { it[EVERYMAN_TYPE] = type }
+    }
+
+    suspend fun saveWakeUpTime(hour: Int, minute: Int) {
+        dataStore.edit {
+            it[WAKE_UP_HOUR] = hour
+            it[WAKE_UP_MINUTE] = minute
+        }
     }
 }

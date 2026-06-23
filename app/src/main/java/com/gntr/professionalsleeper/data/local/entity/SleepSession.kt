@@ -7,7 +7,7 @@ import java.time.ZonedDateTime
 
 @Entity(tableName = "sleep_sessions")
 data class SleepSession(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val startTime: ZonedDateTime,
     val endTime: ZonedDateTime,
     val type: SessionType,

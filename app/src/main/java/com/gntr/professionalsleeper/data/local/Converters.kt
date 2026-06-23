@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.room.TypeConverter
 import com.gntr.professionalsleeper.data.local.entity.SessionStatus
 import com.gntr.professionalsleeper.data.local.entity.SessionType
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -35,7 +36,7 @@ class Converters {
     @TypeConverter
     fun toZonedDateTime(value: String?): ZonedDateTime? {
         return value?.let {
-            ZonedDateTime.parse(it, formatter).withZoneSameInstant(ZoneOffset.UTC)
+            ZonedDateTime.parse(it, formatter).withZoneSameInstant(ZoneId.systemDefault())
         }
     }
 }

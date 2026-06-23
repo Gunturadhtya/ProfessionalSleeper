@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import androidx.compose.runtime.snapshots.toInt
 import androidx.core.app.NotificationCompat
 import com.gntr.professionalsleeper.R
 import com.gntr.professionalsleeper.framework.alarm.AlarmConstants.ALARM_CHANNEL_ID
@@ -19,8 +20,8 @@ class AlarmService: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Timber.d("onStartCommand dieksekusi")
 
-        val sessionId = intent?.getIntExtra(EXTRA_SESSION_ID, -1) ?: -1
-        if (sessionId == -1) {
+        val sessionId = intent?.getLongExtra(EXTRA_SESSION_ID, -1L) ?: -1L
+        if (sessionId == -1L) {
             Timber.e("Gagal memproses alarm: EXTRA_SESSION_ID null atau -1")
             return START_NOT_STICKY
         }
@@ -35,7 +36,7 @@ class AlarmService: Service() {
 
         val fullScreenPendingIntent = PendingIntent.getActivity(
             this,
-            sessionId,
+            sessionId.toInt(),
             fullScreenIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

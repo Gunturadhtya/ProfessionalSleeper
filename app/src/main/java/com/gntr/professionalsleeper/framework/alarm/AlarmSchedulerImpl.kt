@@ -24,7 +24,7 @@ class AlarmSchedulerImpl (
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            session.id,
+            session.id.toInt(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -40,7 +40,7 @@ class AlarmSchedulerImpl (
         val intent = Intent(context, AlarmReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            session.id,
+            session.id.toInt(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
