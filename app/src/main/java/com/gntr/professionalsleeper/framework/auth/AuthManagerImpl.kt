@@ -25,6 +25,8 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import timber.log.Timber
+import java.net.HttpURLConnection
+import java.net.URL
 
 class AuthManagerImpl(
     private val context: Context,
@@ -131,12 +133,33 @@ class AuthManagerImpl(
     }
 
     override suspend fun signOut(): Unit = withContext(Dispatchers.IO) {
+        val tokenToRevoke = secureTokenManager.getIdToken()
+
+        if (!tokenToRevoke.isNullOrEmpty()) {
+            revokeGoogleToken(tokenToRevoke)
+        }
+
         try {
             secureTokenManager.clearTokens()
             credentialManager.clearCredentialState(ClearCredentialStateRequest())
-            Timber.i("Successfully signed out and cleared local credentials.")
         } catch (e: Exception) {
-            Timber.e(e, "Error occurred during sign-out process")
+            Timber.e(e, "Error occurred during local credential wipe.")
+        }
+    }
+
+    private fun revokeGoogleToken(token: String) {
+        try {
+            val url = URL("https://oauth2.googleapis.com/revoke?token=$token")
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "POST"
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+
+            val responseCode = connection.responseCode
+            if (responseCode != 200) {
+                Timber.w("Server rejected token revocation. HTTP Code: $responseCode")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Network failure preventing server-side token revocation.")
         }
     }
 
