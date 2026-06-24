@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -141,6 +142,23 @@ private fun LoggedInContent(
             Text(stringResource(R.string.profile_logout))
         }
 
+        OutlinedButton(
+            onClick = {
+                throw RuntimeException("Test Crash")
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            )
+        ) {
+            Icon(Icons.Filled.Analytics, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Crash Out")
+        }
+
         Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = "Shared Calendars",
@@ -148,7 +166,9 @@ private fun LoggedInContent(
             modifier = Modifier.align(Alignment.Start)
         )
 
-        LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
+        LazyColumn(modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 300.dp)) {
             items(calendarSources, key = { it.id }) { source ->
                 ListItem(
                     headlineContent = { Text(source.displayName) },
@@ -207,6 +227,23 @@ private fun GuestContent(onLoginClick: () -> Unit) {
             Icon(Icons.AutoMirrored.Filled.Login, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(R.string.profile_login_google))
+        }
+
+        OutlinedButton(
+            onClick = {
+                throw RuntimeException("Test Crash")
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            )
+        ) {
+            Icon(Icons.Filled.Analytics, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Crash Out")
         }
     }
 }
