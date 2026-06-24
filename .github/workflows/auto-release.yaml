@@ -14,6 +14,15 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Version and Changelog
+        id: conventional_release
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -35,13 +44,16 @@ jobs:
           ANDROID_CLIENT_ID: ${{ secrets.ANDROID_CLIENT_ID }}
         run: ./gradlew assembleDebug
 
+      - name: Rename APK
+        run: mv app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/ProfessionalSleeper-${{ steps.conventional_release.outputs.new_tag }}.apk"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: "Release Build #${{ github.run_number }}"
-          body: "Automated release triggered by commit ${{ github.sha }}"
-          files: app/build/outputs/apk/debug/app-debug.apk
+          tag_name: ${{ steps.conventional_release.outputs.new_tag }}
+          name: "Release ${{ steps.conventional_release.outputs.new_tag }}"
+          body: ${{ steps.conventional_release.outputs.changelog }}
+          files: "app/build/outputs/apk/debug/ProfessionalSleeper-${{ steps.conventional_release.outputs.new_tag }}.apk"
 
       - name: Upload to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -49,5 +61,5 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIALS }}
           groups: qa-testers
-          file: app/build/outputs/apk/debug/app-debug.apk
-          releaseNotes: "Automated build #${{ github.run_number }} triggered by commit: ${{ github.sha }}"
+          file: "app/build/outputs/apk/debug/ProfessionalSleeper-${{ steps.conventional_release.outputs.new_tag }}.apk"
+          releaseNotes: ${{ steps.conventional_release.outputs.changelog }}
