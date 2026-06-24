@@ -6,17 +6,11 @@ import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.gntr.professionalsleeper.data.local.dao.SleepSessionDao
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
 import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import com.gntr.professionalsleeper.framework.alarm.AlarmConstants.EXTRA_SESSION_ID
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class AlarmReceiver : BroadcastReceiver() {

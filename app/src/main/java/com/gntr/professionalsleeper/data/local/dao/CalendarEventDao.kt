@@ -6,7 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.gntr.professionalsleeper.data.local.entity.CalendarEventEntity
-import com.gntr.professionalsleeper.data.local.entity.CalendarEventWithSource
+import com.gntr.professionalsleeper.data.local.entity.CalendarEventWithSourceEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -28,5 +28,5 @@ interface CalendarEventDao {
 
     @Transaction
     @Query("SELECT * FROM calendar_events WHERE endTime >= :startOfDay AND startTime <= :endOfDay ORDER BY startTime ASC")
-    fun getEventsForTimeframe(startOfDay: Long, endOfDay: Long): Flow<List<CalendarEventWithSource>>
+    fun getEventsForTimeframe(startOfDay: Long, endOfDay: Long): Flow<List<CalendarEventWithSourceEntity>>
 }

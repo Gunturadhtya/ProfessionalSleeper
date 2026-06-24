@@ -27,7 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gntr.professionalsleeper.R
-import com.gntr.professionalsleeper.data.local.entity.EverymanType
+import com.gntr.professionalsleeper.domain.model.EverymanType
 import java.time.LocalTime
 import java.time.ZonedDateTime
 

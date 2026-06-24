@@ -3,7 +3,7 @@ package com.gntr.professionalsleeper.domain.usecase
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.gntr.professionalsleeper.data.local.dao.SleepDebtDao
-import com.gntr.professionalsleeper.data.local.entity.SleepDebt
+import com.gntr.professionalsleeper.data.local.entity.SleepDebtEntity
 import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
 import com.gntr.professionalsleeper.domain.repository.ITransactionRunner
 import java.time.Duration
@@ -34,7 +34,7 @@ class CalculateSleepDebtUseCase @Inject constructor(
             val debt = targetMinutesPerDay - totalSleepMinutes
 
             sleepDebtDao.upsertDebt(
-                SleepDebt(
+                SleepDebtEntity(
                     date = today.toString(),
                     debtMinutes = debt,
                     isSynced = false

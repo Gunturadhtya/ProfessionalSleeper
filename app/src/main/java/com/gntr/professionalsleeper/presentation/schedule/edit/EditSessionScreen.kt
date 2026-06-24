@@ -45,7 +45,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gntr.professionalsleeper.R
-import com.gntr.professionalsleeper.data.local.entity.SessionType
+import com.gntr.professionalsleeper.domain.model.SessionType
 import com.gntr.professionalsleeper.ui.theme.CoreSleepColor
 import com.gntr.professionalsleeper.ui.theme.NapSleepColor
 import java.time.Instant

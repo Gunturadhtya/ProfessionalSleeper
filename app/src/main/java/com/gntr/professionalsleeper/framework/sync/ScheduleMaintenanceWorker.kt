@@ -7,7 +7,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
-import com.gntr.professionalsleeper.data.local.entity.EverymanType
+import com.gntr.professionalsleeper.domain.model.EverymanType
 import com.gntr.professionalsleeper.domain.usecase.GenerateScheduleUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject

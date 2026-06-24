@@ -3,9 +3,9 @@ package com.gntr.professionalsleeper.presentation.schedule.sectograph
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
-import com.gntr.professionalsleeper.data.local.entity.CalendarEventWithSource
-import com.gntr.professionalsleeper.data.local.entity.SessionType
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.data.local.entity.CalendarEventWithSourceEntity
+import com.gntr.professionalsleeper.domain.model.SessionType
+import com.gntr.professionalsleeper.data.local.entity.SleepSessionEntity
 import com.gntr.professionalsleeper.ui.theme.CoreSleepColor
 import com.gntr.professionalsleeper.ui.theme.NapSleepColor
 import java.time.Instant
@@ -16,7 +16,7 @@ import androidx.core.graphics.toColorInt
 object SectographMapper {
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun mapSleepSessionsToSectors(sessions: List<SleepSession>): List<SectographSector> {
+    fun mapSleepSessionsToSectors(sessions: List<SleepSessionEntity>): List<SectographSector> {
         val sectors = mutableListOf<SectographSector>()
 
         val innerRadius = 0.6f
@@ -62,7 +62,7 @@ object SectographMapper {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun mapCalendarEventsToSectors(events: List<CalendarEventWithSource>): List<SectographSector> {
+    fun mapCalendarEventsToSectors(events: List<CalendarEventWithSourceEntity>): List<SectographSector> {
         val sectors = mutableListOf<SectographSector>()
         val innerRadius = 0.4f
         val outerRadius = 0.55f

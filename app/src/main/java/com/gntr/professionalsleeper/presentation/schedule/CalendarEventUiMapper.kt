@@ -2,7 +2,7 @@ package com.gntr.professionalsleeper.presentation.schedule
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.gntr.professionalsleeper.data.local.entity.CalendarEventWithSource
+import com.gntr.professionalsleeper.data.local.entity.CalendarEventWithSourceEntity
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -13,7 +13,7 @@ object CalendarEventUiMapper {
     private val timeFormat = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun mapToUiModel(relationalEvent: CalendarEventWithSource): CalendarEventUiModel {
+    fun mapToUiModel(relationalEvent: CalendarEventWithSourceEntity): CalendarEventUiModel {
         val event = relationalEvent.event
         val source = relationalEvent.source
 

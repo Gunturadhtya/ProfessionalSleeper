@@ -1,8 +1,8 @@
 package com.gntr.professionalsleeper.presentation.schedule
 
 import androidx.compose.ui.graphics.Color
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SessionType
+import com.gntr.professionalsleeper.domain.model.SessionStatus
+import com.gntr.professionalsleeper.domain.model.SessionType
 
 data class SleepSessionUiModel(
     val id: Long,

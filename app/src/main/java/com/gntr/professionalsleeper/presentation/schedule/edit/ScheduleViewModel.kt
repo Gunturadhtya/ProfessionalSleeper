@@ -6,8 +6,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gntr.professionalsleeper.Route
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SessionType
+import com.gntr.professionalsleeper.domain.model.SessionStatus
+import com.gntr.professionalsleeper.domain.model.SessionType
 import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -3,8 +3,8 @@ package com.gntr.professionalsleeper.data.repository
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.gntr.professionalsleeper.data.local.dao.SleepSessionDao
-import com.gntr.professionalsleeper.data.local.entity.SessionType
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.domain.model.SessionType
+import com.gntr.professionalsleeper.data.local.entity.SleepSessionEntity
 import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -16,12 +16,12 @@ class SleepSessionRepositoryImpl(
     private val dao: SleepSessionDao
 ) : ISleepSessionRepository {
 
-    override suspend fun insertSession(session: SleepSession): Long = dao.insertSession(session)
+    override suspend fun insertSession(session: SleepSessionEntity): Long = dao.insertSession(session)
 
-    override suspend fun updateSession(session: SleepSession) = dao.updateSession(session)
+    override suspend fun updateSession(session: SleepSessionEntity) = dao.updateSession(session)
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun getSessionsForToday(): Flow<List<SleepSession>> {
+    override fun getSessionsForToday(): Flow<List<SleepSessionEntity>> {
         val zoneId = ZoneId.systemDefault()
         val today = LocalDate.now(zoneId)
         val startOfDay = today.atStartOfDay(zoneId).toInstant().toEpochMilli()
@@ -33,7 +33,7 @@ class SleepSessionRepositoryImpl(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun getSessionsForScheduleDisplay(): Flow<List<SleepSession>> {
+    override fun getSessionsForScheduleDisplay(): Flow<List<SleepSessionEntity>> {
         val zoneId = ZoneId.systemDefault()
 
         return dao.getAllSessions().map { all ->
@@ -49,7 +49,7 @@ class SleepSessionRepositoryImpl(
                         session.startTime.toInstant().toEpochMilli() in startOfToday..endOfToday
             }
 
-            val coreSession: SleepSession? = run {
+            val coreSession: SleepSessionEntity? = run {
                 val todayFutureCore = all.firstOrNull { session ->
                     session.type == SessionType.CORE &&
                             session.endTime.toInstant().toEpochMilli() in startOfToday..endOfToday &&
@@ -80,22 +80,22 @@ class SleepSessionRepositoryImpl(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override suspend fun getSessionsSnapshotForDay(startOfDay: Long, endOfDay: Long): List<SleepSession> {
+    override suspend fun getSessionsSnapshotForDay(startOfDay: Long, endOfDay: Long): List<SleepSessionEntity> {
         return dao.getAllSessionsSnapshot().filter { session ->
             session.startTime.toInstant().toEpochMilli() in startOfDay..endOfDay
         }
     }
 
-    override suspend fun getSessionById(id: Long): SleepSession? = dao.getSessionById(id)
+    override suspend fun getSessionById(id: Long): SleepSessionEntity? = dao.getSessionById(id)
 
-    override suspend fun clearAllSessions(): List<SleepSession> {
+    override suspend fun clearAllSessions(): List<SleepSessionEntity> {
         val allSessions = dao.getAllSessionsSnapshot()
         dao.deleteAllSessions()
         return allSessions
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun getSessionsForTimeframe(startEpochMilli: Long, endEpochMilli: Long): Flow<List<SleepSession>> {
+    override fun getSessionsForTimeframe(startEpochMilli: Long, endEpochMilli: Long): Flow<List<SleepSessionEntity>> {
         return dao.getAllSessions().map { sessions ->
             sessions.filter {
                 it.startTime.toInstant().toEpochMilli() in startEpochMilli..endEpochMilli
@@ -104,7 +104,7 @@ class SleepSessionRepositoryImpl(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override suspend fun getSessionsSnapshotForTimeframe(startEpochMilli: Long, endEpochMilli: Long): List<SleepSession> {
+    override suspend fun getSessionsSnapshotForTimeframe(startEpochMilli: Long, endEpochMilli: Long): List<SleepSessionEntity> {
         return dao.getAllSessionsSnapshot().filter { session ->
             session.startTime.toInstant().toEpochMilli() in startEpochMilli..endEpochMilli
         }

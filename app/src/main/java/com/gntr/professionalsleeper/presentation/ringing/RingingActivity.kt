@@ -22,7 +22,7 @@ import androidx.lifecycle.lifecycleScope
 import com.gntr.professionalsleeper.R
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
 import com.gntr.professionalsleeper.data.local.datastore.dataStore
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.data.local.entity.SleepSessionEntity
 import com.gntr.professionalsleeper.framework.alarm.AlarmConstants.EXTRA_SESSION_ID
 import com.gntr.professionalsleeper.framework.alarm.AlarmService
 import com.gntr.professionalsleeper.framework.launcher.AppLauncherHelper
@@ -106,9 +106,9 @@ class RingingActivity : ComponentActivity() {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RingingScreen(
-    session: SleepSession?,
+    session: SleepSessionEntity?,
     onDismissClick: () -> Unit,
-    onSnoozeClick: (SleepSession) -> Unit
+    onSnoozeClick: (SleepSessionEntity) -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),

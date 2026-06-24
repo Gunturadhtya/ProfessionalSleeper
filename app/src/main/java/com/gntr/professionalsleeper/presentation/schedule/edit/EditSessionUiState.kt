@@ -1,7 +1,7 @@
 package com.gntr.professionalsleeper.presentation.schedule.edit
 
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SessionType
+import com.gntr.professionalsleeper.domain.model.SessionStatus
+import com.gntr.professionalsleeper.domain.model.SessionType
 
 data class EditSessionUiState(
     val isLoading: Boolean = true,

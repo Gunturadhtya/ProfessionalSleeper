@@ -5,12 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
-import com.gntr.professionalsleeper.data.local.entity.EverymanType
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SessionType
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
-import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
-import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
+import com.gntr.professionalsleeper.domain.model.EverymanType
 import com.gntr.professionalsleeper.domain.usecase.GenerateScheduleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

@@ -3,11 +3,10 @@ package com.gntr.professionalsleeper.presentation.schedule
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.material3.MaterialTheme
 import com.gntr.professionalsleeper.R
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SessionType
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.domain.model.SessionStatus
+import com.gntr.professionalsleeper.domain.model.SessionType
+import com.gntr.professionalsleeper.data.local.entity.SleepSessionEntity
 import com.gntr.professionalsleeper.ui.theme.CoreSleepColor
 import com.gntr.professionalsleeper.ui.theme.NapSleepColor
 import java.time.Duration
@@ -18,7 +17,7 @@ import java.util.Locale
 object SleepSessionUiMapper {
     @RequiresApi(Build.VERSION_CODES.O)
     fun mapToUiModel(
-        session: SleepSession,
+        session: SleepSessionEntity,
         context: Context,
         now: ZonedDateTime = ZonedDateTime.now()
     ): SleepSessionUiModel {

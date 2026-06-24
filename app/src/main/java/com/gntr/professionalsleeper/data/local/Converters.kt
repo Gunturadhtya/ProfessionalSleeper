@@ -3,8 +3,8 @@ package com.gntr.professionalsleeper.data.local
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.room.TypeConverter
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SessionType
+import com.gntr.professionalsleeper.domain.model.SessionStatus
+import com.gntr.professionalsleeper.domain.model.SessionType
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime

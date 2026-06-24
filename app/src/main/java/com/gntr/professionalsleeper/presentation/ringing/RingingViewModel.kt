@@ -5,7 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gntr.professionalsleeper.data.local.dao.SleepSessionDao
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.data.local.entity.SleepSessionEntity
 import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +21,8 @@ class RingingViewModel @Inject constructor(
     private val alarmScheduler: IAlarmScheduler
 ) : ViewModel() {
 
-    private val _currentSession = MutableStateFlow<SleepSession?>(null)
-    val currentSession: StateFlow<SleepSession?> = _currentSession.asStateFlow()
+    private val _currentSession = MutableStateFlow<SleepSessionEntity?>(null)
+    val currentSession: StateFlow<SleepSessionEntity?> = _currentSession.asStateFlow()
 
     fun loadSession(sessionId: Long) {
         viewModelScope.launch {
@@ -31,7 +31,7 @@ class RingingViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun triggerSnooze(session: SleepSession, snoozeMinutes: Long = 5) {
+    fun triggerSnooze(session: SleepSessionEntity, snoozeMinutes: Long = 5) {
         viewModelScope.launch {
             val updatedSession = session.copy(
                 endTime = ZonedDateTime.now().plusMinutes(snoozeMinutes),

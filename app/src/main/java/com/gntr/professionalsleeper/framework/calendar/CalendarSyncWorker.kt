@@ -9,8 +9,8 @@ import androidx.work.WorkerParameters
 import com.gntr.professionalsleeper.data.local.dao.CalendarEventDao
 import com.gntr.professionalsleeper.data.local.dao.CalendarSourceDao
 import com.gntr.professionalsleeper.data.local.entity.CalendarEventEntity
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.domain.model.SessionStatus
+import com.gntr.professionalsleeper.data.local.entity.SleepSessionEntity
 import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import com.gntr.professionalsleeper.domain.auth.IAuthManager
 import com.gntr.professionalsleeper.domain.calendar.ICalendarSyncService
@@ -95,7 +95,7 @@ class CalendarSyncWorker @AssistedInject constructor(
         }
 
         return try {
-            val sessionsToReschedule = mutableListOf<SleepSession>()
+            val sessionsToReschedule = mutableListOf<SleepSessionEntity>()
 
             transactionRunner {
                 val localEventIds = calendarEventDao.getEventIdsForTimeframe(timeMin, timeMax)

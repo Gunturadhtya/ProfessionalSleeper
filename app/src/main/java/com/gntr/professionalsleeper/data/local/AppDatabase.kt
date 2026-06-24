@@ -9,12 +9,12 @@ import com.gntr.professionalsleeper.data.local.dao.SleepDebtDao
 import com.gntr.professionalsleeper.data.local.dao.SleepSessionDao
 import com.gntr.professionalsleeper.data.local.entity.CalendarEventEntity
 import com.gntr.professionalsleeper.data.local.entity.CalendarSourceEntity
-import com.gntr.professionalsleeper.data.local.entity.SleepDebt
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.data.local.entity.SleepDebtEntity
+import com.gntr.professionalsleeper.data.local.entity.SleepSessionEntity
 
 @Database(entities = [
-    SleepSession::class,
-    SleepDebt::class,
+    SleepSessionEntity::class,
+    SleepDebtEntity::class,
     CalendarEventEntity::class,
     CalendarSourceEntity::class
                      ], version = 5, exportSchema = false)

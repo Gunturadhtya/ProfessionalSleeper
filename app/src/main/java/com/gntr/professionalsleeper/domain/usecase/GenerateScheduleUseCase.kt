@@ -2,10 +2,10 @@ package com.gntr.professionalsleeper.domain.usecase
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.gntr.professionalsleeper.data.local.entity.EverymanType
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SessionType
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.domain.model.EverymanType
+import com.gntr.professionalsleeper.domain.model.SessionStatus
+import com.gntr.professionalsleeper.domain.model.SessionType
+import com.gntr.professionalsleeper.data.local.entity.SleepSessionEntity
 import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
 import java.time.ZonedDateTime
@@ -29,7 +29,7 @@ class GenerateScheduleUseCase @Inject constructor(
             val coreDuration = everyman.coreSleepMinutes.toLong()
             val coreStart = dailyWakeUpTime.minusMinutes(coreDuration)
 
-            val coreSession = SleepSession(
+            val coreSession = SleepSessionEntity(
                 startTime = coreStart,
                 endTime = dailyWakeUpTime,
                 type = SessionType.CORE,
@@ -48,7 +48,7 @@ class GenerateScheduleUseCase @Inject constructor(
                 val napStart = previousWakeTime.plusHours(everyman.napIntervalHours)
                 val napEnd = napStart.plusMinutes(everyman.napDurationMinutes.toLong())
 
-                val napSession = SleepSession(
+                val napSession = SleepSessionEntity(
                     startTime = napStart,
                     endTime = napEnd,
                     type = SessionType.NAP,

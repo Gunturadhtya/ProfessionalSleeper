@@ -12,12 +12,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.workDataOf
 import com.gntr.professionalsleeper.data.local.dao.CalendarEventDao
 import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
-import com.gntr.professionalsleeper.data.local.entity.SessionStatus
-import com.gntr.professionalsleeper.data.local.entity.SessionType
-import com.gntr.professionalsleeper.data.local.entity.SleepSession
+import com.gntr.professionalsleeper.domain.model.SessionStatus
+import com.gntr.professionalsleeper.domain.model.SessionType
+import com.gntr.professionalsleeper.data.local.entity.SleepSessionEntity
 import com.gntr.professionalsleeper.domain.alarm.IAlarmScheduler
 import com.gntr.professionalsleeper.domain.auth.IAuthManager
 import com.gntr.professionalsleeper.domain.repository.ISleepSessionRepository
@@ -166,7 +165,7 @@ class MainViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     fun scheduleNewSession(startTime: Long, endTime: Long, type: SessionType) {
         viewModelScope.launch {
-            val session = SleepSession(
+            val session = SleepSessionEntity(
                 startTime = Instant.ofEpochMilli(startTime).atZone(ZoneId.systemDefault()),
                 endTime = Instant.ofEpochMilli(endTime).atZone(ZoneId.systemDefault()),
                 type = type,
@@ -187,7 +186,7 @@ class MainViewModel @Inject constructor(
     fun triggerDebugAlarm() {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
-            val debugSession = SleepSession(
+            val debugSession = SleepSessionEntity(
                 startTime = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()),
                 endTime = Instant.ofEpochMilli(now + 5000).atZone(ZoneId.systemDefault()),
                 type = SessionType.NAP,

@@ -1,4 +1,4 @@
-package com.gntr.professionalsleeper.data.local.entity
+package com.gntr.professionalsleeper.domain.model
 
 enum class EverymanType(
     val displayName: String,
