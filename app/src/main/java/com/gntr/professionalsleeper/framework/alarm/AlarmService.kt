@@ -28,9 +28,14 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import androidx.core.net.toUri
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class AlarmService : Service() {
+
+    companion object {
+        const val ACTION_START_RINGING = "com.gntr.professionalsleeper.ACTION_START_RINGING"
+    }
 
     @Inject
     lateinit var prefsRepo: AppPreferencesRepository
@@ -40,6 +45,11 @@ class AlarmService : Service() {
 
     @SuppressLint("FullScreenIntentPolicy")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if(intent?.action == ACTION_START_RINGING){
+            playAlarmAudio()
+            return START_STICKY
+        }
+
         val sessionId = intent?.getLongExtra(EXTRA_SESSION_ID, -1L) ?: -1L
         if (sessionId == -1L) {
             return START_NOT_STICKY
@@ -71,14 +81,14 @@ class AlarmService : Service() {
 
         startForeground(1001, notification)
 
-        playAlarmAudio()
-
         return START_STICKY
     }
 
     private fun playAlarmAudio() {
         serviceScope.launch {
             try {
+                delay(450L)
+
                 val uriString = prefsRepo.alarmRingtoneUriFlow.first()
                 val uri = uriString.toUri()
 

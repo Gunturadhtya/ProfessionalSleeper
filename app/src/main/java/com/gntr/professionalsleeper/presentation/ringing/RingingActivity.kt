@@ -55,6 +55,11 @@ class RingingActivity : ComponentActivity() {
 
         val sessionId = intent.getLongExtra(EXTRA_SESSION_ID, -1L)
 
+        startService(Intent(this, AlarmService::class.java).apply {
+            action = AlarmService.ACTION_START_RINGING
+        })
+
+
         setContent {
             ProfessionalSleeperTheme {
                 val viewModel: RingingViewModel = hiltViewModel()
