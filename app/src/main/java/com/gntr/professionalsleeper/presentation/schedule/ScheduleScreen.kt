@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Settings
@@ -50,6 +51,7 @@ fun ScheduleScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onResetComplete: () -> Unit,
+    onNavigateToEditSession: (Long) -> Unit,
 ) {
     val scheduleItems by viewModel.upcomingScheduleItems.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
@@ -160,7 +162,10 @@ fun ScheduleScreen(
                     items(scheduleItems, key = { it.itemKey }) { item ->
                         when (item) {
                             is ScheduleListItem.DateHeader -> DateSectionHeader(item.date, item.sessionCount)
-                            is ScheduleListItem.Session -> SessionCard(item.session)
+                            is ScheduleListItem.Session -> SessionCard(
+                                session = item.session,
+                                onEditClick = { onNavigateToEditSession(item.session.id) }
+                            )
                             is ScheduleListItem.CalendarEvent -> CalendarEventCard(item.event)
                         }
                     }
@@ -259,7 +264,7 @@ private fun EmptyScheduleCard() {
 }
 
 @Composable
-fun SessionCard(session: SleepSessionUiModel) {
+fun SessionCard(session: SleepSessionUiModel, onEditClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -276,7 +281,7 @@ fun SessionCard(session: SleepSessionUiModel) {
 
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                    .padding(start = 16.dp, top = 14.dp, end = 8.dp, bottom = 8.dp)
                     .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -306,11 +311,29 @@ fun SessionCard(session: SleepSessionUiModel) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                Text(
-                    text = session.durationText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = session.durationText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    IconButton(
+                        onClick = onEditClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.cd_edit_session),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
             }
         }
     }

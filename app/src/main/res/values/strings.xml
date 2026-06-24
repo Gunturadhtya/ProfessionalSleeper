@@ -17,6 +17,7 @@
     <string name="common_ok">OK</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_reset">Reset</string>
+    <string name="common_save">Save</string>
 
     <!-- SetupScreen UI -->
     <string name="setup_select_everyman_type">Select Everyman Type:</string>
@@ -30,6 +31,7 @@
     <string name="cd_reset_sleep_session">Reset Sleep Session</string>
     <string name="cd_profile">Profile</string>
     <string name="cd_settings">Settings</string>
+    <string name="cd_edit_session">Edit session</string>
     <string name="dialog_reset_title">Reset sleep session?</string>
     <string name="dialog_reset_message">This will cancel all scheduled alarms, delete every session in your current schedule, and take you back to setup so you can configure your schedule again. This can\'t be undone.</string>
     <string name="schedule_header_today">Today\'s Schedule</string>
@@ -45,6 +47,15 @@
     <string name="analysis_title">Sleep Analysis</string>
     <string name="analysis_placeholder">Historical Data Visualization…</string>
     <string name="schedule_header_upcoming">Upcoming Schedule</string>
+
+    <!-- EditSessionScreen UI -->
+    <string name="edit_session_title">Edit Session</string>
+    <string name="edit_session_type_label">Sleep Type</string>
+    <string name="edit_session_start_time">Start time</string>
+    <string name="edit_session_end_time">End time</string>
+    <string name="edit_session_duration_minutes">Duration (minutes)</string>
+    <string name="edit_session_pick_start_time">Select start time</string>
+    <string name="edit_session_pick_end_time">Select end time</string>
 
     <!-- AuthScreen UI -->
     <string name="auth_subtitle">Synchronize your polyphasic schedule with your calendar.</string>
@@ -67,4 +78,6 @@
     <!-- SettingsScreen UI -->
     <string name="settings_title">Settings</string>
     <string name="settings_instruction">Choose the app that will automatically open when the alarm is turned off:</string>
+    <string name="settings_bypass_dnd_title">Bypass Do Not Disturb</string>
+    <string name="settings_bypass_dnd_subtitle">Allow alarms to ring even when DND is active (opens system settings)</string>
 </resources>

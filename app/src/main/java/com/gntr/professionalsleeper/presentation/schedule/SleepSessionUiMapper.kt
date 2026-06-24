@@ -69,7 +69,11 @@ object SleepSessionUiMapper {
             accentColor = accentColor,
             statusLabel = statusLabel,
             statusBgColor = bgColor,
-            statusTextColor = textColor
+            statusTextColor = textColor,
+            type = session.type,
+            status = session.status,
+            startTimeMillis = session.startTime.toInstant().toEpochMilli(),
+            endTimeMillis = session.endTime.toInstant().toEpochMilli()
         )
     }
 }

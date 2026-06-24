@@ -18,9 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -35,9 +37,10 @@ import com.gntr.professionalsleeper.presentation.MainViewModel
 import com.gntr.professionalsleeper.presentation.auth.AuthScreen
 import com.gntr.professionalsleeper.presentation.auth.AuthViewModel
 import com.gntr.professionalsleeper.presentation.profile.ProfileScreen
+import com.gntr.professionalsleeper.presentation.schedule.ScheduleScreen
+import com.gntr.professionalsleeper.presentation.schedule.edit.EditSessionScreen
 import com.gntr.professionalsleeper.presentation.setup.OnboardingScreen
 import com.gntr.professionalsleeper.presentation.setup.SetupViewModel
-import com.gntr.professionalsleeper.presentation.schedule.ScheduleScreen
 import com.gntr.professionalsleeper.presentation.settings.SettingsScreen
 import com.gntr.professionalsleeper.ui.theme.ProfessionalSleeperTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -124,6 +127,22 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(Route.Setup.route) {
                                     popUpTo(Route.Schedule.route) { inclusive = true }
                                 }
+                            },
+                            onNavigateToEditSession = { sessionId ->
+                                navController.navigate(Route.EditSession.createRoute(sessionId))
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = Route.EditSession.route,
+                        arguments = listOf(
+                            navArgument(Route.EditSession.ARG_SESSION_ID) { type = NavType.LongType }
+                        )
+                    ) {
+                        EditSessionScreen(
+                            onNavigateBack = {
+                                navController.popBackStack()
                             }
                         )
                     }

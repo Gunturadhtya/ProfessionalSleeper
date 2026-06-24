@@ -17,6 +17,7 @@
     <string name="common_ok">OK</string>
     <string name="common_cancel">Batal</string>
     <string name="common_reset">Atur Ulang</string>
+    <string name="common_save">Simpan</string>
 
     <!-- SetupScreen UI -->
     <string name="setup_select_everyman_type">Pilih tipe Everyman:</string>
@@ -27,6 +28,7 @@
 
     <!-- ScheduleScreen UI -->
     <string name="cd_debug_alarm">Alarm Debug</string>
+    <string name="cd_edit_session">Edit sesi</string>
     <string name="cd_reset_sleep_session">Atur Ulang Sesi Tidur</string>
     <string name="cd_profile">Profil</string>
     <string name="cd_settings">Pengaturan</string>
@@ -45,6 +47,15 @@
     <string name="analysis_title">Analisis Tidur</string>
     <string name="analysis_placeholder">Visualisasi Data Historis…</string>
     <string name="schedule_header_upcoming">Jadwal Mendatang</string>
+
+    <!-- EditSessionScreen UI -->
+    <string name="edit_session_title">Edit Sesi</string>
+    <string name="edit_session_type_label">Tipe Tidur</string>
+    <string name="edit_session_start_time">Waktu mulai</string>
+    <string name="edit_session_end_time">Waktu selesai</string>
+    <string name="edit_session_duration_minutes">Durasi (menit)</string>
+    <string name="edit_session_pick_start_time">Pilih waktu mulai</string>
+    <string name="edit_session_pick_end_time">Pilih waktu selesai</string>
 
     <!-- AuthScreen UI -->
     <string name="auth_subtitle">Sinkronkan jadwal polyphasic Anda dengan kalender Anda.</string>
@@ -67,4 +78,6 @@
     <!-- SettingsScreen UI -->
     <string name="settings_title">Pengaturan</string>
     <string name="settings_instruction">Pilih aplikasi yang akan otomatis terbuka saat alarm dimatikan:</string>
+    <string name="settings_bypass_dnd_title">Lewati Jangan Ganggu (DND)</string>
+    <string name="settings_bypass_dnd_subtitle">Izinkan alarm berbunyi saat mode Jangan Ganggu aktif (buka pengaturan sistem)</string>
 </resources>
