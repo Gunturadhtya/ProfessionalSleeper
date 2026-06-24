@@ -114,7 +114,7 @@ class MainViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     val sleepSectors: StateFlow<List<SectographSector>> =
-        repository.getSessionsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(2))
+        repository.getSessionsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(1))
             .map { sessions -> SectographMapper.mapSleepSessionsToSectors(sessions) }
             .flowOn(Dispatchers.Default)
             .stateIn(
@@ -125,7 +125,7 @@ class MainViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     val calendarSectors: StateFlow<List<SectographSector>> =
-        calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(2))
+        calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(1))
             .map { events -> SectographMapper.mapCalendarEventsToSectors(events) }
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -133,8 +133,8 @@ class MainViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     val upcomingScheduleItems: StateFlow<List<ScheduleListItem>> =
         combine(
-            repository.getSessionsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(2)),
-            calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(2))
+            repository.getSessionsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(3)),
+            calendarEventDao.getEventsForTimeframe(getStartOfTodayMilli(), getEndOfDayOffsetMilli(3))
         ) { sessions, events ->
             val sessionItems = sessions.map { session ->
                 ScheduleListItem.Session(
@@ -224,19 +224,21 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val deletedSessions = repository.clearAllSessions()
             deletedSessions.forEach { session -> alarmScheduler.cancelAlarm(session) }
+
+            calendarEventDao.deleteAll()
+
             prefsRepo.setSetupComplete(false)
             _resetEvents.send(Unit)
         }
     }
 
     fun triggerCalendarSync() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val account = authManager.getSignedInAccount()
             val accountEmail = account?.email
 
             if (accountEmail != null) {
                 val syncRequest = OneTimeWorkRequestBuilder<CalendarSyncWorker>()
-                    .setInputData(workDataOf("account_email" to accountEmail))
                     .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                     .build()
 

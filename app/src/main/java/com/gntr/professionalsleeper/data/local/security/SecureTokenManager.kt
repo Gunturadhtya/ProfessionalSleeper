@@ -3,6 +3,7 @@ package com.gntr.professionalsleeper.data.local.security
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import androidx.core.content.edit
 
 class SecureTokenManager(context: Context) {
 
@@ -47,6 +48,6 @@ class SecureTokenManager(context: Context) {
     fun getPhotoUrl(): String? = sharedPreferences.getString("photo_url", null)
 
     fun clearTokens() {
-        sharedPreferences.edit().clear().apply()
+        sharedPreferences.edit { clear() }
     }
 }
