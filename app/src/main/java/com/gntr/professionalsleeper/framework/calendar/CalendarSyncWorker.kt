@@ -21,6 +21,7 @@ import dagger.assisted.AssistedInject
 import timber.log.Timber
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 
 @HiltWorker
@@ -56,7 +57,8 @@ class CalendarSyncWorker @AssistedInject constructor(
             return Result.success()
         }
 
-        val timeMin = System.currentTimeMillis()
+        val zoneId = ZoneId.systemDefault()
+        val timeMin = LocalDate.now(zoneId).atStartOfDay(zoneId).toInstant().toEpochMilli()
         val timeMax = timeMin + (7L * 24 * 60 * 60 * 1000)
 
         val allAggregatedEvents = mutableListOf<CalendarEventEntity>()
@@ -96,7 +98,14 @@ class CalendarSyncWorker @AssistedInject constructor(
             val sessionsToReschedule = mutableListOf<SleepSession>()
 
             transactionRunner {
-                calendarEventDao.deleteAll()
+                val localEventIds = calendarEventDao.getEventIdsForTimeframe(timeMin, timeMax)
+                val remoteEventIds = allAggregatedEvents.map { it.id }.toSet()
+
+                val orphanedIds = localEventIds.filterNot { remoteEventIds.contains(it) }
+
+                if (orphanedIds.isNotEmpty()) {
+                    calendarEventDao.deleteEventsByIds(orphanedIds)
+                }
 
                 if (allAggregatedEvents.isNotEmpty()) {
                     calendarEventDao.insertAll(allAggregatedEvents)
