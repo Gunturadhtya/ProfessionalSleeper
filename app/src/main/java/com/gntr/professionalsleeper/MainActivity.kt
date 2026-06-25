@@ -12,11 +12,18 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -29,29 +36,33 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.gntr.professionalsleeper.data.local.datastore.AppPreferencesRepository
-import com.gntr.professionalsleeper.domain.auth.AuthAccount
-import com.gntr.professionalsleeper.domain.auth.IAuthManager
-import com.gntr.professionalsleeper.framework.calendar.CalendarSyncWorker
-import com.gntr.professionalsleeper.presentation.MainViewModel
-import com.gntr.professionalsleeper.presentation.auth.AuthScreen
-import com.gntr.professionalsleeper.presentation.auth.AuthViewModel
-import com.gntr.professionalsleeper.presentation.profile.ProfileScreen
-import com.gntr.professionalsleeper.presentation.schedule.ScheduleScreen
-import com.gntr.professionalsleeper.presentation.schedule.edit.EditSessionScreen
-import com.gntr.professionalsleeper.presentation.setup.OnboardingScreen
-import com.gntr.professionalsleeper.presentation.setup.SetupViewModel
-import com.gntr.professionalsleeper.presentation.settings.SettingsScreen
-import com.gntr.professionalsleeper.ui.theme.ProfessionalSleeperTheme
+import com.gntr.domain.auth.IAuthManager
+import com.gntr.domain.repository.IPreferencesRepository
+import com.gntr.framework.calendar.CalendarSyncWorker
+import com.gntr.ui.Route
+import com.gntr.ui.auth.AuthScreen
+import com.gntr.ui.auth.AuthViewModel
+import com.gntr.ui.profile.ProfileScreen
+import com.gntr.ui.quicknap.QuickNapScreen
+import com.gntr.ui.schedule.ScheduleScreen
+import com.gntr.ui.schedule.ScheduleViewModel
+import com.gntr.ui.schedule.edit.EditSessionScreen
+import com.gntr.ui.setup.SetupScreen
+import com.gntr.ui.setup.SetupViewModel
+import com.gntr.ui.settings.SettingsScreen
+import com.gntr.ui.theme.ProfessionalSleeperTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     @Inject
-    lateinit var prefsRepo: AppPreferencesRepository
+    lateinit var prefsRepo: IPreferencesRepository
 
     @Inject
     lateinit var authManager: IAuthManager
@@ -60,7 +71,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (BuildConfig.DEBUG){
+        if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
 
@@ -68,26 +79,35 @@ class MainActivity : ComponentActivity() {
             ProfessionalSleeperTheme {
                 RequestEssentialPermissions(context = this)
 
-                val authAccount by produceState<AuthAccount?>(initialValue = null) {
-                    value = authManager.getSignedInAccount()
+                var startRoute by remember { mutableStateOf<String?>(null) }
+
+                LaunchedEffect(Unit) {
+                    val account = authManager.getSignedInAccount()
+                    val isSetupComplete = prefsRepo.isSetupCompleteFlow.first()
+
+                    startRoute = when {
+                        account == null -> Route.Auth.route
+                        !isSetupComplete -> Route.Setup.route
+                        else -> Route.Schedule.route
+                    }
                 }
 
-                val isSetupComplete by prefsRepo.isSetupCompleteFlow.collectAsState(false)
+                if (startRoute == null) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                    return@ProfessionalSleeperTheme
+                }
 
                 val navController = rememberNavController()
 
-                val startRoute = when {
-                    authAccount == null -> Route.Auth.route
-                    !isSetupComplete -> Route.Setup.route
-                    else -> Route.Schedule.route
-                }
-
                 NavHost(
                     navController = navController,
-                    startDestination = startRoute
+                    startDestination = startRoute!!
                 ) {
                     composable(Route.Auth.route) {
                         val authViewModel: AuthViewModel = hiltViewModel()
+                        val coroutineScope = rememberCoroutineScope()
                         AuthScreen(
                             viewModel = authViewModel,
                             onAuthSuccess = { userEmail ->
@@ -99,22 +119,24 @@ class MainActivity : ComponentActivity() {
                                 val cameFromProfile = navController.previousBackStackEntry
                                     ?.destination?.route == Route.Profile.route
 
-                                val destination = when {
-                                    cameFromProfile -> Route.Profile.route
-                                    isSetupComplete -> Route.Schedule.route
-                                    else -> Route.Setup.route
-                                }
-
-                                navController.navigate(destination) {
-                                    popUpTo(Route.Auth.route) { inclusive = true }
-                                    launchSingleTop = true
+                                coroutineScope.launch {
+                                    val setupComplete = prefsRepo.isSetupCompleteFlow.first()
+                                    val destination = when {
+                                        cameFromProfile -> Route.Profile.route
+                                        setupComplete -> Route.Schedule.route
+                                        else -> Route.Setup.route
+                                    }
+                                    navController.navigate(destination) {
+                                        popUpTo(Route.Auth.route) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 }
                             }
                         )
                     }
 
                     composable(Route.Schedule.route) {
-                        val viewModel: MainViewModel = hiltViewModel()
+                        val viewModel: ScheduleViewModel = hiltViewModel()
                         ScheduleScreen(
                             viewModel = viewModel,
                             onNavigateToSettings = {
@@ -130,6 +152,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToEditSession = { sessionId ->
                                 navController.navigate(Route.EditSession.createRoute(sessionId))
+                            },
+                            onNavigateToQuickNap = {
+                                navController.navigate(Route.QuickNap.route)
                             }
                         )
                     }
@@ -162,9 +187,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Route.Settings.route) {
-                        val viewModel: MainViewModel = hiltViewModel()
                         SettingsScreen(
-                            viewModel = viewModel,
                             onNavigateBack = {
                                 navController.popBackStack()
                             }
@@ -173,7 +196,7 @@ class MainActivity : ComponentActivity() {
 
                     composable(Route.Setup.route) {
                         val viewModel: SetupViewModel = hiltViewModel()
-                        OnboardingScreen(
+                        SetupScreen(
                             viewModel = viewModel,
                             onComplete = {
                                 navController.navigate(Route.Schedule.route) {
@@ -181,6 +204,10 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         )
+                    }
+
+                    composable(Route.QuickNap.route) {
+                        QuickNapScreen()
                     }
                 }
             }

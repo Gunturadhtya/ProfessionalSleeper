@@ -39,6 +39,7 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -46,31 +47,40 @@
             android:theme="@style/Theme.ProfessionalSleeper">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".presentation.ringing.RingingActivity"
+            android:name="com.gntr.ui.ringing.RingingActivity"
             android:exported="false"
-            android:showOnLockScreen="true"
+            android:launchMode="singleTask"
+            android:showForAllUsers="true"
             android:theme="@style/Theme.ProfessionalSleeper" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
 
         <receiver
-            android:name=".framework.alarm.AlarmReceiver"
+            android:name="com.gntr.framework.alarm.AlarmReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
+            android:name="com.gntr.framework.alarm.PreSessionNotificationReceiver"
             android:enabled="true"
             android:exported="false" />
 
         <service
-            android:name=".framework.alarm.AlarmService"
+            android:name="com.gntr.framework.alarm.AlarmService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="specialUse" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Sleep alarm ringing notification requiring full-screen wake-up" />
+        </service>
     </application>
-
-
 
 </manifest>
