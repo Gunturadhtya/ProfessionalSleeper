@@ -35,19 +35,21 @@ class RingingViewModel @Inject constructor(
         alarmController.startRinging()
     }
 
-    fun dismissAlarmAndWork() {
+    fun dismissAlarmAndWork(actualStartTime: ZonedDateTime?, actualEndTime: ZonedDateTime?) {
         alarmController.stopRinging()
         viewModelScope.launch {
             _currentSession.value?.let { session ->
-                val completedSession = session.copy(status = SessionStatus.COMPLETED)
+                val completedSession = session.copy(
+                    status = SessionStatus.COMPLETED,
+                    startTime = actualStartTime ?: session.startTime,
+                    endTime = actualEndTime ?: session.endTime
+                )
                 sleepSessionRepository.updateSession(completedSession)
             }
-
             val targetPackage = prefsRepo.targetAppPackageFlow.first()
             appLauncher.launchTargetApp(targetPackage)
         }
     }
-
     fun loadSession(sessionId: Long) {
         viewModelScope.launch {
             _currentSession.value = sleepSessionRepository.getSessionById(sessionId)

@@ -83,8 +83,7 @@ class SeedDatabaseUseCase @Inject constructor(
                 sleepDebtRepository.upsertDebt(
                     SleepDebt(
                         date = date.toString(),
-                        debtMinutes = debt,
-                        isSynced = false
+                        debtMinutes = debt
                     )
                 )
             }

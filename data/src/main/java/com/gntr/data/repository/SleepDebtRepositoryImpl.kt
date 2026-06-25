@@ -15,14 +15,6 @@ class SleepDebtRepositoryImpl @Inject constructor(
         dao.upsertDebt(sleepDebt.toEntity())
     }
 
-    override suspend fun getUnsyncedDebts(): List<SleepDebt> {
-        return dao.getUnsyncedDebts().map { it.toDomain() }
-    }
-
-    override suspend fun markAsSynced(dates: List<String>) {
-        dao.markAsSynced(dates)
-    }
-
     override suspend fun getDebtsForDateRange(
         startDateInclusive: String,
         endDateInclusive: String

@@ -39,8 +39,7 @@ class CalculateSleepDebtUseCase @Inject constructor(
             sleepDebtRepository.upsertDebt(
                 SleepDebt(
                     date = today.toString(),
-                    debtMinutes = debt,
-                    isSynced = false
+                    debtMinutes = debt
                 )
             )
         }

@@ -68,7 +68,9 @@ class RingingActivity : ComponentActivity() {
                 RingingScreen(
                     session = currentSession,
                     onDismissClick = {
-                        viewModel.dismissAlarmAndWork()
+                        viewModel.dismissAlarmAndWork(currentSession?.startTime,
+                            currentSession?.endTime
+                        )
                         finish()
                     },
                     onSnoozeClick = { session ->

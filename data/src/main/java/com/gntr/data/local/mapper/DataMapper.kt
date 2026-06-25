@@ -40,16 +40,14 @@ fun SleepSession.toEntity(): SleepSessionEntity {
 fun SleepDebtEntity.toDomain(): SleepDebt {
     return SleepDebt(
         date = this.date,
-        debtMinutes = this.debtMinutes,
-        isSynced = this.isSynced
+        debtMinutes = this.debtMinutes
     )
 }
 
 fun SleepDebt.toEntity(): SleepDebtEntity {
     return SleepDebtEntity(
         date = this.date,
-        debtMinutes = this.debtMinutes,
-        isSynced = this.isSynced
+        debtMinutes = this.debtMinutes
     )
 }
 

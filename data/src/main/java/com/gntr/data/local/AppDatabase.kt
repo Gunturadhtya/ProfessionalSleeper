@@ -17,7 +17,7 @@ import com.gntr.data.local.entity.SleepSessionEntity
     SleepDebtEntity::class,
     CalendarEventEntity::class,
     CalendarSourceEntity::class
-                     ], version = 7, exportSchema = false)
+                     ], version = 8, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sleepSessionDao(): SleepSessionDao
