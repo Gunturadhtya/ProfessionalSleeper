@@ -6,4 +6,9 @@ interface ISleepDebtRepository {
     suspend fun upsertDebt(sleepDebt: SleepDebt)
     suspend fun getUnsyncedDebts(): List<SleepDebt>
     suspend fun markAsSynced(dates: List<String>)
+
+    suspend fun getDebtsForDateRange(
+        startDateInclusive: String,
+        endDateInclusive: String
+    ): List<SleepDebt>
 }

@@ -40,6 +40,7 @@ import com.gntr.domain.auth.IAuthManager
 import com.gntr.domain.repository.IPreferencesRepository
 import com.gntr.framework.calendar.CalendarSyncWorker
 import com.gntr.ui.Route
+import com.gntr.ui.analysis.AnalysisViewModel
 import com.gntr.ui.auth.AuthScreen
 import com.gntr.ui.auth.AuthViewModel
 import com.gntr.ui.profile.ProfileScreen
@@ -137,6 +138,7 @@ class MainActivity : ComponentActivity() {
 
                     composable(Route.Schedule.route) {
                         val viewModel: ScheduleViewModel = hiltViewModel()
+                        val analysisViewModel: AnalysisViewModel = hiltViewModel()
                         ScheduleScreen(
                             viewModel = viewModel,
                             onNavigateToSettings = {
@@ -155,7 +157,8 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToQuickNap = {
                                 navController.navigate(Route.QuickNap.route)
-                            }
+                            },
+                            analysisViewModel = analysisViewModel
                         )
                     }
 

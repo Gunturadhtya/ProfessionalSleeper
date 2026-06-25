@@ -34,6 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gntr.ui.R
+import com.gntr.ui.analysis.AnalysisViewModel
+import com.gntr.ui.analysis.SleepAnalysisSheetContent
 import com.gntr.ui.schedule.sectograph.Sectograph
 import com.gntr.ui.theme.CalendarEventColor
 import com.gntr.ui.theme.JetBrainsMono
@@ -53,6 +55,7 @@ import java.time.LocalDate
 @Composable
 fun ScheduleScreen(
     viewModel: ScheduleViewModel,
+    analysisViewModel: AnalysisViewModel,
     onNavigateToSettings: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onResetComplete: () -> Unit,
@@ -94,7 +97,7 @@ fun ScheduleScreen(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 80.dp,
         sheetContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-        sheetContent = { SleepAnalysisSheetContent() },
+        sheetContent = { SleepAnalysisSheetContent(viewModel = analysisViewModel) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium) },
@@ -450,53 +453,6 @@ private fun StatusChip(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-    }
-}
-
-@Composable
-private fun SleepAnalysisSheetContent() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .width(32.dp)
-                .height(4.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                    shape = RoundedCornerShape(2.dp)
-                )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(R.string.analysis_title),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.analysis_placeholder),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 

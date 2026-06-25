@@ -16,4 +16,7 @@ interface SleepDebtDao {
 
     @Query("UPDATE sleep_debts SET isSynced = 1 WHERE date IN (:dates)")
     suspend fun markAsSynced(dates: List<String>)
+
+    @Query("SELECT * FROM sleep_debts WHERE date >= :startDate AND date <= :endDate")
+    suspend fun getDebtsForDateRange(startDate: String, endDate: String): List<SleepDebtEntity>
 }

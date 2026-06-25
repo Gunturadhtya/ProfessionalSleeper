@@ -14,7 +14,8 @@ class GetScheduleTimeframeUseCase @Inject constructor() {
         val zoneId = ZoneId.systemDefault()
         val today = LocalDate.now(zoneId)
 
-        val startMilli = today.atStartOfDay(zoneId)
+        val startMilli = today.plusDays(daysOffset - 1)
+            .atStartOfDay(zoneId)
             .toInstant()
             .toEpochMilli()
 

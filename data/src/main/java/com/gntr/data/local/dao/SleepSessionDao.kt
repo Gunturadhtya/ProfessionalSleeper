@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SleepSessionDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSession(session: SleepSessionEntity): Long
 
@@ -27,6 +28,24 @@ interface SleepSessionDao {
 
     @Query("DELETE FROM sleep_sessions")
     suspend fun deleteAllSessions()
+
+    @Query("""
+        SELECT * FROM sleep_sessions
+        WHERE startTime >= :startIso
+          AND startTime <= :endIso
+          AND status IN ('SCHEDULED', 'COMPLETED')
+        ORDER BY startTime ASC
+        """)
+    fun getSessionsForTimeframe(startIso: String, endIso: String): Flow<List<SleepSessionEntity>>
+
+    @Query("""
+        SELECT * FROM sleep_sessions
+        WHERE startTime >= :startIso
+          AND startTime <= :endIso
+          AND status IN ('SCHEDULED', 'COMPLETED')
+        ORDER BY startTime ASC
+        """)
+    suspend fun getSessionsSnapshotForTimeframe(startIso: String, endIso: String): List<SleepSessionEntity>
 
     @Query("SELECT * FROM sleep_sessions WHERE startTime >= :timeframeStart AND status IN ('COMPLETED', 'SCHEDULED')")
     fun getSessionsForAnalytics(timeframeStart: Long): Flow<List<SleepSessionEntity>>

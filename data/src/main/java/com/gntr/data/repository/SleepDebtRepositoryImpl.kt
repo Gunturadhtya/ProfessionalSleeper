@@ -22,4 +22,11 @@ class SleepDebtRepositoryImpl @Inject constructor(
     override suspend fun markAsSynced(dates: List<String>) {
         dao.markAsSynced(dates)
     }
+
+    override suspend fun getDebtsForDateRange(
+        startDateInclusive: String,
+        endDateInclusive: String
+    ): List<SleepDebt> {
+        return dao.getDebtsForDateRange(startDateInclusive, endDateInclusive).map { it.toDomain() }
+    }
 }
