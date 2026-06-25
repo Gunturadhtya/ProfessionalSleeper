@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.gntr.domain.alarm.IAlarmScheduler
 import com.gntr.domain.alarm.IPreSessionNotificationScheduler
+import com.gntr.domain.model.NotificationLeadTime
 import com.gntr.domain.model.SessionStatus
 import com.gntr.domain.model.SleepSession
 import com.gntr.domain.repository.ISleepSessionRepository
@@ -28,7 +29,8 @@ class SleepSessionManager @Inject constructor(
                 alarmScheduler.scheduleAlarm(sessionWithId)
             }
             if (sessionWithId.startTime.isAfter(now)) {
-                preSessionNotificationScheduler.schedulePreSessionNotification(sessionWithId)
+                val leadSeconds = NotificationLeadTime.forSession(session)
+                preSessionNotificationScheduler.schedulePreSessionNotification(session, leadSeconds)
             }
         }
         return id
@@ -45,7 +47,8 @@ class SleepSessionManager @Inject constructor(
                 alarmScheduler.scheduleAlarm(session)
             }
             if (session.startTime.isAfter(now)) {
-                preSessionNotificationScheduler.schedulePreSessionNotification(session)
+                val leadSeconds = NotificationLeadTime.forSession(session)
+                preSessionNotificationScheduler.schedulePreSessionNotification(session, leadSeconds)
             }
         }
     }
