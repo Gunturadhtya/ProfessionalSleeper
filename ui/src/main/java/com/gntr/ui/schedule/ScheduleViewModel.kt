@@ -133,13 +133,6 @@ class ScheduleViewModel @Inject constructor(
     }
 
     fun triggerCalendarSync() {
-        viewModelScope.launch {
-            val account = authManager.getSignedInAccount()
-            if (account?.email != null) {
-                syncManager.triggerCalendarSync()
-            } else {
-                Timber.w("Calendar sync aborted: No valid signed-in account found.")
-            }
-        }
+        syncManager.triggerCalendarSync()
     }
 }
