@@ -34,12 +34,17 @@ android {
 
     defaultConfig {
         applicationId = "com.gntr.professionalsleeper"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val androidClientId = localProperties.getProperty("ANDROID_CLIENT_ID")
+            ?: System.getenv("ANDROID_CLIENT_ID")
+            ?: "\"\""
+        buildConfigField("String", "ANDROID_CLIENT_ID", androidClientId)
     }
 
     buildTypes {
@@ -58,11 +63,6 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-
-    defaultConfig {
-        val androidClientId = localProperties.getProperty("ANDROID_CLIENT_ID") ?: System.getenv("ANDROID_CLIENT_ID") ?: "\"\""
-        buildConfigField("String", "ANDROID_CLIENT_ID", androidClientId)
     }
 }
 

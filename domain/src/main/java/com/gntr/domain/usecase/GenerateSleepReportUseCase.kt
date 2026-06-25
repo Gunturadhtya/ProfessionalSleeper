@@ -19,8 +19,7 @@ class GenerateSleepReportUseCase @Inject constructor(
     private val sessionRepository: ISleepSessionRepository,
     private val sleepDebtRepository: ISleepDebtRepository
 ) {
-
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend operator fun invoke(timeframe: ScheduleTimeframe): SleepAnalysisReport {
         val zoneId = ZoneId.systemDefault()
 
@@ -79,7 +78,6 @@ class GenerateSleepReportUseCase @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     private fun SleepSession.durationMinutes(): Int =
         Duration.between(startTime, endTime).toMinutes().toInt().coerceAtLeast(0)
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun computeOverlapMinutes(
