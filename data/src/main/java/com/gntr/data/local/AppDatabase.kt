@@ -12,12 +12,16 @@ import com.gntr.data.local.entity.CalendarSourceEntity
 import com.gntr.data.local.entity.SleepDebtEntity
 import com.gntr.data.local.entity.SleepSessionEntity
 
-@Database(entities = [
-    SleepSessionEntity::class,
-    SleepDebtEntity::class,
-    CalendarEventEntity::class,
-    CalendarSourceEntity::class
-                     ], version = 8, exportSchema = false)
+@Database(
+    entities = [
+        SleepSessionEntity::class,
+        SleepDebtEntity::class,
+        CalendarEventEntity::class,
+        CalendarSourceEntity::class
+    ],
+    version = 9,
+    exportSchema = true
+)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sleepSessionDao(): SleepSessionDao

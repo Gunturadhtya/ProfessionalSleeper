@@ -9,6 +9,7 @@ import com.gntr.data.local.dao.SleepDebtDao
 import com.gntr.data.local.dao.SleepSessionDao
 import com.gntr.data.local.datastore.AppPreferencesRepository
 import com.gntr.data.local.datastore.dataStore
+import com.gntr.data.local.migrations.MIGRATION_8_9
 import com.gntr.domain.repository.IPreferencesRepository
 import dagger.Module
 import dagger.Provides
@@ -25,7 +26,7 @@ internal object DataModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(context, AppDatabase::class.java, "sleeper_db")
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_8_9)
             .build()
     }
 
