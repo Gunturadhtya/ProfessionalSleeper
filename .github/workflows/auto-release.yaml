@@ -41,13 +41,26 @@ jobs:
           fi
           echo "$GOOGLE_SERVICES_JSON" > app/google-services.json
 
-      - name: Build all modules (assembleDebug)
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::KEYSTORE_BASE64 secret is not set."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > app/release.keystore
+
+      - name: Build release APK
         env:
           ANDROID_CLIENT_ID: ${{ secrets.ANDROID_CLIENT_ID }}
-        run: ./gradlew assembleDebug --stacktrace
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --stacktrace
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew testReleaseUnitTest --stacktrace
 
       - name: Generate Version and Changelog
         id: conventional_release
@@ -58,7 +71,7 @@ jobs:
 
       - name: Rename APK
         if: steps.conventional_release.outputs.new_tag != ''
-        run: mv app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/ProfessionalSleeper-${{ steps.conventional_release.outputs.new_tag }}.apk"
+        run: mv app/build/outputs/apk/release/app-release.apk "app/build/outputs/apk/release/ProfessionalSleeper-${{ steps.conventional_release.outputs.new_tag }}.apk"
 
       - name: Create GitHub Release
         if: steps.conventional_release.outputs.new_tag != ''
@@ -67,7 +80,7 @@ jobs:
           tag_name: ${{ steps.conventional_release.outputs.new_tag }}
           name: "Release ${{ steps.conventional_release.outputs.new_tag }}"
           body: ${{ steps.conventional_release.outputs.changelog }}
-          files: "app/build/outputs/apk/debug/ProfessionalSleeper-${{ steps.conventional_release.outputs.new_tag }}.apk"
+          files: "app/build/outputs/apk/release/ProfessionalSleeper-${{ steps.conventional_release.outputs.new_tag }}.apk"
 
       - name: Upload to Firebase App Distribution
         if: steps.conventional_release.outputs.new_tag != ''
@@ -76,5 +89,5 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIALS }}
           groups: qa-testers
-          file: "app/build/outputs/apk/debug/ProfessionalSleeper-${{ steps.conventional_release.outputs.new_tag }}.apk"
+          file: "app/build/outputs/apk/release/ProfessionalSleeper-${{ steps.conventional_release.outputs.new_tag }}.apk"
           releaseNotes: ${{ steps.conventional_release.outputs.changelog }}

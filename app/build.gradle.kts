@@ -47,9 +47,22 @@ android {
         buildConfigField("String", "ANDROID_CLIENT_ID", androidClientId)
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = localProperties.getProperty("KEYSTORE_PASSWORD")
+                ?: System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = localProperties.getProperty("KEY_ALIAS")
+                ?: System.getenv("KEY_ALIAS")
+            keyPassword = localProperties.getProperty("KEY_PASSWORD")
+                ?: System.getenv("KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
