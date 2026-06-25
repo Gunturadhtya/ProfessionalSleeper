@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">ProfessionalSleeper</string>
+
+    <!-- AlarmService UI -->
+    <string name="notification_title">Waktunya Bangun!</string>
+    <string name="notification_content">Sesi tidur polyphasic Anda telah selesai.</string>
+    <string name="notification_channel_name">Alarm Tidur</string>
+    <string name="notification_channel_description">Saluran untuk jadwal tidur</string>
+
+    <!-- RingingActivity UI -->
+    <string name="ringing_title">Bangun!</string>
+    <string name="ringing_subtitle">Sesi polyphasic Anda telah selesai.</string>
+    <string name="ringing_button_dismiss">Matikan &amp; Kerja</string>
+    <string name="ringing_button_snooze">Snooze (%1$d tersisa)</string>
+
+    <!-- Common -->
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Batal</string>
+    <string name="common_reset">Atur Ulang</string>
+    <string name="common_save">Simpan</string>
+
+    <!-- SetupScreen UI -->
+    <string name="setup_select_everyman_type">Pilih tipe Everyman:</string>
+    <string name="setup_everyman_description">%1$s (Core: %2$dm, Nap: %3$dx)</string>
+    <string name="setup_select_wake_up_time_label">Pilih Jam Bangun: %1$s</string>
+    <string name="setup_save_and_start">Simpan &amp; Mulai</string>
+    <string name="setup_select_wake_up_time_title">Pilih Jam Bangun</string>
+
+    <!-- ScheduleScreen UI -->
+    <string name="cd_debug_alarm">Alarm Debug</string>
+    <string name="cd_edit_session">Edit sesi</string>
+    <string name="cd_reset_sleep_session">Atur Ulang Sesi Tidur</string>
+    <string name="cd_profile">Profil</string>
+    <string name="cd_settings">Pengaturan</string>
+    <string name="dialog_reset_title">Atur ulang sesi tidur?</string>
+    <string name="dialog_reset_message">Ini akan membatalkan semua alarm yang dijadwalkan, menghapus setiap sesi dalam jadwal Anda saat ini, dan membawa Anda kembali ke pengaturan sehingga Anda dapat mengonfigurasi jadwal Anda lagi. Ini tidak dapat dibatalkan.</string>
+    <string name="schedule_header_today">Jadwal Hari Ini</string>
+    <string name="schedule_session_count_single">%1$d sesi</string>
+    <string name="schedule_session_count_plural">%1$d sesi</string>
+    <string name="schedule_empty_message">Tidak ada sesi yang dijadwalkan hari ini</string>
+    <string name="session_type_core">Tidur Inti</string>
+    <string name="session_type_nap">Tidur Singkat</string>
+    <string name="session_duration">%1$d mnt</string>
+    <string name="status_ongoing">Sedang Berlangsung</string>
+    <string name="status_upcoming">Mendatang</string>
+    <string name="status_done">Selesai</string>
+    <string name="analysis_title">Analisis Tidur</string>
+    <string name="analysis_placeholder">Visualisasi Data Historis…</string>
+    <string name="schedule_header_upcoming">Jadwal Mendatang</string>
+
+    <!-- EditSessionScreen UI -->
+    <string name="edit_session_title">Edit Sesi</string>
+    <string name="edit_session_type_label">Tipe Tidur</string>
+    <string name="edit_session_start_time">Waktu mulai</string>
+    <string name="edit_session_end_time">Waktu selesai</string>
+    <string name="edit_session_duration_minutes">Durasi (menit)</string>
+    <string name="edit_session_pick_start_time">Pilih waktu mulai</string>
+    <string name="edit_session_pick_end_time">Pilih waktu selesai</string>
+
+    <!-- AuthScreen UI -->
+    <string name="auth_subtitle">Sinkronkan jadwal polyphasic Anda dengan kalender Anda.</string>
+    <string name="auth_btn_google">Lanjutkan dengan Google</string>
+    <string name="auth_btn_offline">Gunakan offline tanpa sinkronisasi</string>
+    <string name="error_calendar_permission">Izin kalender diperlukan untuk menyinkronkan tidur singkat.</string>
+    <string name="error_google_signin_failed">Gagal Masuk dengan Google</string>
+
+    <!-- ProfileScreen UI -->
+    <string name="profile_title">Profil</string>
+    <string name="cd_back">Kembali</string>
+    <string name="profile_signed_in">Sudah masuk</string>
+    <string name="profile_logout">Keluar</string>
+    <string name="profile_guest">Tamu</string>
+    <string name="profile_guest_subtitle">Anda belum masuk. Masuk dengan Google untuk menyinkronkan jadwal Anda dengan kalender Anda.</string>
+    <string name="profile_login_google">Masuk dengan Google</string>
+    <string name="cd_profile_picture">Foto profil</string>
+    <string name="cd_default_profile_picture">Foto profil bawaan</string>
+
+    <!-- SettingsScreen UI -->
+    <string name="settings_title">Pengaturan</string>
+    <string name="settings_instruction">Pilih aplikasi yang akan otomatis terbuka saat alarm dimatikan:</string>
+    <string name="settings_bypass_dnd_title">Lewati Jangan Ganggu (DND)</string>
+    <string name="settings_bypass_dnd_subtitle">Izinkan alarm berbunyi saat mode Jangan Ganggu aktif (buka pengaturan sistem)</string>
+</resources>
