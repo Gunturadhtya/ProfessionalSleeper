@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.gntr.domain.alarm.IAppDiscoveryService
 import com.gntr.domain.model.AppInfo
 import com.gntr.domain.repository.IPreferencesRepository
-import com.gntr.domain.usecase.SeedDatabaseUseCase
+import com.gntr.domain.usecase.ISeedDatabaseUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class AppLauncherViewModel @Inject constructor(
     private val prefsRepo: IPreferencesRepository,
     private val appDiscoveryService: IAppDiscoveryService,
-    private val seedDatabaseUseCase: SeedDatabaseUseCase
+    private val seedDatabaseUseCase: ISeedDatabaseUseCase
 ) : ViewModel() {
 
     private var currentPageIndex = 0

@@ -12,9 +12,9 @@ import javax.inject.Inject
 
 class TriggerDebugAlarmUseCase @Inject constructor(
     private val sleepSessionManager: SleepSessionManager
-) {
+) : ITriggerDebugAlarmUseCase {
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend operator fun invoke() {
+    override suspend operator fun invoke() {
         val now = System.currentTimeMillis()
         val debugSession = SleepSession(
             startTime = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()),

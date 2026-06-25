@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.gntr.ui.BuildConfig
 import com.gntr.ui.R
 import androidx.core.net.toUri
 
@@ -167,20 +168,22 @@ fun SettingsScreen(
                 }
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-            Text(
-                text = "Developer",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(16.dp)
-            )
-            ListItem(
-                headlineContent = { Text("Seed Mock Data") },
-                supportingContent = { Text("Generate 30 days of historical sleep analysis data") },
-                modifier = Modifier.clickable {
-                    viewModel.seedMockData()
-                    Toast.makeText(context, "Mock data seeded. Pull-to-refresh the schedule to recalculate analytics.", Toast.LENGTH_LONG).show()
-                }
-            )
+            if (BuildConfig.DEBUG) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                Text(
+                    text = "Developer",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(16.dp)
+                )
+                ListItem(
+                    headlineContent = { Text("Seed Mock Data") },
+                    supportingContent = { Text("Generate 30 days of historical sleep analysis data") },
+                    modifier = Modifier.clickable {
+                        viewModel.seedMockData()
+                        Toast.makeText(context, "Mock data seeded. Pull-to-refresh the schedule to recalculate analytics.", Toast.LENGTH_LONG).show()
+                    }
+                )
+            }
         }
     }
 }

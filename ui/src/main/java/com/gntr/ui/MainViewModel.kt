@@ -21,7 +21,7 @@ import com.gntr.domain.model.SessionStatus
 import com.gntr.domain.model.SessionType
 import com.gntr.domain.model.SleepSession
 import com.gntr.domain.usecase.ScheduleNewSessionUseCase
-import com.gntr.domain.usecase.TriggerDebugAlarmUseCase
+import com.gntr.domain.usecase.ITriggerDebugAlarmUseCase
 import com.gntr.ui.schedule.CalendarEventUiMapper
 import com.gntr.ui.schedule.ScheduleListItem
 import com.gntr.ui.schedule.SleepSessionUiMapper
@@ -51,7 +51,7 @@ class MainViewModel @Inject constructor(
     private val authManager: IAuthManager,
     private val syncManager: ISyncManager,
     private val scheduleNewSessionUseCase: ScheduleNewSessionUseCase,
-    private val triggerDebugAlarmUseCase: TriggerDebugAlarmUseCase
+    private val triggerDebugAlarmUseCase: ITriggerDebugAlarmUseCase
 ) : ViewModel() {
 
     private val _resetEvents = Channel<Unit>(Channel.BUFFERED)

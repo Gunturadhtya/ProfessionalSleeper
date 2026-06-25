@@ -12,8 +12,8 @@ import com.gntr.domain.repository.IPreferencesRepository
 import com.gntr.domain.repository.ISleepSessionRepository
 import com.gntr.domain.service.SleepSessionManager
 import com.gntr.domain.usecase.GetScheduleTimeframeUseCase
+import com.gntr.domain.usecase.ITriggerDebugAlarmUseCase
 import com.gntr.domain.usecase.ReconcileSessionStatusUseCase
-import com.gntr.domain.usecase.TriggerDebugAlarmUseCase
 import com.gntr.ui.schedule.sectograph.SectographMapper
 import com.gntr.ui.schedule.sectograph.SectographSector
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +45,7 @@ class ScheduleViewModel @Inject constructor(
     private val authManager: IAuthManager,
     private val syncManager: ISyncManager,
     private val getTimeframe: GetScheduleTimeframeUseCase,
-    private val triggerDebugAlarmUseCase: TriggerDebugAlarmUseCase,
+    private val triggerDebugAlarmUseCase: ITriggerDebugAlarmUseCase,
     private val reconcileSessionStatusUseCase: ReconcileSessionStatusUseCase
 ) : ViewModel() {
 
@@ -61,10 +61,18 @@ class ScheduleViewModel @Inject constructor(
     val isSyncing: StateFlow<Boolean> = syncManager.isSyncing
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    // Compute timeframes once; getTimeframe derives from LocalDate.now() so
+    // calling it six times in property initialisers returns six identical but
+    // logically separate values. Storing them here also makes the intent clear
+    // and prevents subtle inconsistencies if GetScheduleTimeframeUseCase ever
+    // reads from a preference (e.g. "week starts on Monday").
+    private val todayTimeframe = getTimeframe(startDaysOffset = 0, endDaysOffset = 0)
+    private val upcomingTimeframe = getTimeframe(startDaysOffset = 0, endDaysOffset = 3)
+
     val sleepSectors: StateFlow<List<SectographSector>> =
         sleepSessionRepository.getSessionsForTimeframe(
-            startEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 0).startMilli,
-            endEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 0).endMilli
+            startEpochMilli = todayTimeframe.startMilli,
+            endEpochMilli = todayTimeframe.endMilli
         )
             .map { sessions -> SectographMapper.mapSleepSessionsToSectors(sessions) }
             .flowOn(Dispatchers.Default)
@@ -72,8 +80,8 @@ class ScheduleViewModel @Inject constructor(
 
     val calendarSectors: StateFlow<List<SectographSector>> =
         calendarEventRepository.getEventsForTimeframe(
-            startEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 0).startMilli,
-            endEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 0).endMilli
+            startEpochMilli = todayTimeframe.startMilli,
+            endEpochMilli = todayTimeframe.endMilli
         )
             .map { events -> SectographMapper.mapCalendarEventsToSectors(events) }
             .flowOn(Dispatchers.Default)
@@ -82,12 +90,12 @@ class ScheduleViewModel @Inject constructor(
     val upcomingScheduleItems: StateFlow<List<ScheduleListItem>> =
         combine(
             sleepSessionRepository.getSessionsForTimeframe(
-                startEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 3).startMilli,
-                endEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 3).endMilli
+                startEpochMilli = upcomingTimeframe.startMilli,
+                endEpochMilli = upcomingTimeframe.endMilli
             ),
             calendarEventRepository.getEventsForTimeframe(
-                startEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 3).startMilli,
-                endEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 3).endMilli
+                startEpochMilli = upcomingTimeframe.startMilli,
+                endEpochMilli = upcomingTimeframe.endMilli
             )
         ) { sessions, events ->
             val sessionItems = sessions.map { session ->
@@ -133,6 +141,13 @@ class ScheduleViewModel @Inject constructor(
     }
 
     fun triggerCalendarSync() {
-        syncManager.triggerCalendarSync()
+        viewModelScope.launch {
+            val account = authManager.getSignedInAccount()
+            if (account?.email != null) {
+                syncManager.triggerCalendarSync()
+            } else {
+                Timber.w("Calendar sync aborted: No valid signed-in account found.")
+            }
+        }
     }
 }

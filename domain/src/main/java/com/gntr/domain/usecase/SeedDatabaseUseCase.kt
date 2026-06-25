@@ -18,9 +18,9 @@ class SeedDatabaseUseCase @Inject constructor(
     private val sessionRepository: ISleepSessionRepository,
     private val sleepDebtRepository: ISleepDebtRepository,
     private val transactionRunner: ITransactionRunner
-) {
+) : ISeedDatabaseUseCase {
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend operator fun invoke() {
+    override suspend operator fun invoke() {
         transactionRunner {
             val zoneId = ZoneId.systemDefault()
             val today = LocalDate.now(zoneId)
