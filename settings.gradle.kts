@@ -23,5 +23,8 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "ProfessionalSleeper"
-include(":app")
- 
+include(":app", ":ui", ":data", ":domain")
+include(":domain")
+include(":data")
+include(":ui")
+include(":framework")
