@@ -14,7 +14,6 @@ class GetNextCoreSessionUseCase @Inject constructor() {
         val zoneId = now.zone
         val today = now.toLocalDate()
 
-        // Exclude cancelled sessions from targeting evaluations
         val validSessions = allSessions.filter { it.status != SessionStatus.CANCELLED }
 
         val startOfToday = today.atStartOfDay(zoneId).toInstant().toEpochMilli()

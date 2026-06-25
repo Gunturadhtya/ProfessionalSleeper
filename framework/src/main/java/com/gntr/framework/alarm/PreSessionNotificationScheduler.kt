@@ -14,14 +14,14 @@ import com.gntr.domain.alarm.IPreSessionNotificationScheduler
 import com.gntr.domain.model.SleepSession
 import timber.log.Timber
 
-class PreSessionNotificationScheduler(private val context: Context) : IPreSessionNotificationScheduler{
+class PreSessionNotificationScheduler(private val context: Context, ) : IPreSessionNotificationScheduler{
 
     companion object {
         const val PRE_SESSION_CHANNEL_ID = "PRE_SESSION_CHANNEL_ID"
         const val EXTRA_SESSION_ID = "PRE_SESSION_EXTRA_SESSION_ID"
         const val EXTRA_SESSION_TYPE = "PRE_SESSION_EXTRA_SESSION_TYPE"
         const val EXTRA_LEAD_SECONDS = "PRE_SESSION_EXTRA_LEAD_SECONDS"
-        val LEAD_TIME_OPTIONS_SECONDS = listOf(2L, 10L, 300L)
+//        val LEAD_TIME_OPTIONS_SECONDS = listOf(2L, 10L, 300L)
 
         fun pendingIntentFor(context: Context, sessionId: Long): PendingIntent {
             val intent = Intent(context, PreSessionNotificationReceiver::class.java).apply {
@@ -39,8 +39,11 @@ class PreSessionNotificationScheduler(private val context: Context) : IPreSessio
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun schedulePreSessionNotification(session: SleepSession) {
-        val leadSeconds = LEAD_TIME_OPTIONS_SECONDS[(session.id % LEAD_TIME_OPTIONS_SECONDS.size).toInt()]
+    override fun schedulePreSessionNotification(
+        session: SleepSession,
+        leadSeconds: Long
+    ) {
+//        val leadSeconds = LEAD_TIME_OPTIONS_SECONDS[(session.id % LEAD_TIME_OPTIONS_SECONDS.size).toInt()]
         val triggerAtMillis = session.startTime.toInstant().toEpochMilli() - (leadSeconds * 1_000L)
 
         if (triggerAtMillis <= System.currentTimeMillis()) {

@@ -71,7 +71,6 @@ class ReconcileScheduleWithCalendarUseCase @Inject constructor() {
 
                     Timber.d("   [Iteration %d] COLLISION DETECTED! Overlaps with block [%s -> %s]", iterations, conflictStartZDT, conflictEndZDT)
 
-                    // Bump the session
                     newStart = Instant.ofEpochMilli(conflict.second).atZone(zoneId)
                     newEnd = newStart.plus(duration)
 
