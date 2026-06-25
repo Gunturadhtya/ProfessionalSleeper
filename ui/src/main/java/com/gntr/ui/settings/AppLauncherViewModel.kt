@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,6 +34,17 @@ class AppLauncherViewModel @Inject constructor(
 
     val alarmRingtoneUri: StateFlow<String> = prefsRepo.alarmRingtoneUriFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    val filteredApps: StateFlow<List<AppInfo>> = combine(_installedApps, _searchQuery) { apps, query ->
+        if (query.isBlank()) {
+            apps
+        } else {
+            apps.filter { it.appName.contains(query, ignoreCase = true) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun initializeAppList() {
         if (_installedApps.value.isNotEmpty() || isFetchingApps) return
@@ -65,6 +77,35 @@ class AppLauncherViewModel @Inject constructor(
     fun saveAlarmRingtone(uriString: String) {
         viewModelScope.launch {
             prefsRepo.saveAlarmRingtoneUri(uriString)
+        }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+        if (query.isNotBlank()) {
+            fetchAllApps()
+        }
+    }
+
+    private fun fetchAllApps() {
+        if (isFetchingApps) return
+        isFetchingApps = true
+
+        viewModelScope.launch {
+            try {
+                while (true) {
+                    val nextBatch = appDiscoveryService.getInstalledApps(currentPageIndex, pageSize)
+
+                    if (nextBatch.isEmpty()) {
+                        break
+                    }
+
+                    _installedApps.update { current -> current + nextBatch }
+                    currentPageIndex += nextBatch.size
+                }
+            } finally {
+                isFetchingApps = false
+            }
         }
     }
 }

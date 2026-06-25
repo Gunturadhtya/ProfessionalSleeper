@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -34,6 +35,8 @@ fun SettingsScreen(
     val installedApps by viewModel.installedApps.collectAsState()
     val alarmRingtoneUri by viewModel.alarmRingtoneUri.collectAsState()
     val listState = rememberLazyListState()
+    val filteredApps by viewModel.filteredApps.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
 
     val ringtoneName = remember(alarmRingtoneUri) {
         if (alarmRingtoneUri.isNotEmpty()) {
@@ -87,6 +90,18 @@ fun SettingsScreen(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
+
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.onSearchQueryChanged(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                placeholder = { Text("Search installed applications...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true
+            )
+
             Text(
                 text = "Alarm Preferences",
                 style = MaterialTheme.typography.titleMedium,
@@ -126,17 +141,17 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {
-                items(installedApps, key = { it.packageName }) { app ->
+                items(filteredApps, key = { it.packageName }) { app ->
                     val isSelected = app.packageName == targetAppPackage
 
                     ListItem(
+                        leadingContent = {
+                            AppIcon(packageName = app.packageName)
+                        },
                         headlineContent = { Text(app.appName, style = MaterialTheme.typography.bodyLarge) },
                         supportingContent = { Text(app.packageName, style = MaterialTheme.typography.labelMedium) },
                         trailingContent = {
-                            RadioButton(
-                                selected = isSelected,
-                                onClick = null
-                            )
+                            RadioButton(selected = isSelected, onClick = null)
                         },
                         modifier = Modifier.clickable {
                             viewModel.saveTargetApp(app.packageName)
