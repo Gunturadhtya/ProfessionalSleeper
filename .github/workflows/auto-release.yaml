@@ -60,7 +60,7 @@ jobs:
         run: ./gradlew assembleRelease --stacktrace
 
       - name: Run unit tests
-        run: ./gradlew testReleaseUnitTest --stacktrace
+        run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Generate Version and Changelog
         id: conventional_release
