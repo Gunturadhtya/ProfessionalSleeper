@@ -25,7 +25,7 @@ class SleepSessionRepositoryImpl @Inject constructor(
 
     private fun Long.toUtcIso(): String =
         Instant.ofEpochMilli(this)
-            .atOffset(ZoneOffset.UTC)
+            .atZone(ZoneOffset.UTC)
             .format(formatter)
 
     override suspend fun insertSession(session: SleepSession): Long =

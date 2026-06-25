@@ -127,7 +127,10 @@ fun ScheduleScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             PullToRefreshBox(
                 isRefreshing = isSyncing,
-                onRefresh = { viewModel.triggerCalendarSync() },
+                onRefresh = {
+                    viewModel.triggerCalendarSync()
+                    analysisViewModel.refresh()
+                },
                 state = pullToRefreshState,
                 modifier = Modifier
                     .fillMaxSize()
