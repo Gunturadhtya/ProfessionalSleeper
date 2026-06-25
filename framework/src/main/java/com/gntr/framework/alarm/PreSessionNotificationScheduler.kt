@@ -14,7 +14,7 @@ import com.gntr.domain.alarm.IPreSessionNotificationScheduler
 import com.gntr.domain.model.SleepSession
 import timber.log.Timber
 
-class PreSessionNotificationScheduler(private val context: Context, ) : IPreSessionNotificationScheduler{
+class PreSessionNotificationScheduler(private val context: Context) : IPreSessionNotificationScheduler{
 
     companion object {
         const val PRE_SESSION_CHANNEL_ID = "PRE_SESSION_CHANNEL_ID"

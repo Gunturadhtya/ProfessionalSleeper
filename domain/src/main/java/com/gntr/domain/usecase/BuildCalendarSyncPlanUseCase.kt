@@ -1,8 +1,10 @@
 package com.gntr.domain.usecase
 
 import com.gntr.domain.calendar.SyncError
+import com.gntr.domain.calendar.SyncFailure
 import com.gntr.domain.calendar.SyncPlan
 import com.gntr.domain.calendar.SyncResult
+import com.gntr.domain.calendar.SyncSuccess
 import com.gntr.domain.model.CalendarEvent
 import javax.inject.Inject
 
@@ -19,16 +21,15 @@ class BuildCalendarSyncPlanUseCase @Inject constructor() {
 
         for ((sourceId, result) in resultsBySourceId) {
             when (result) {
-                is SyncResult.Success<*> -> {
-                    @Suppress("UNCHECKED_CAST")
-                    val events = result.data as List<CalendarEvent>
+                is SyncSuccess -> {
+                    val events = result.data
                     eventsToInsert.addAll(events)
 
                     val remoteIds = events.map { it.id }.toSet()
                     val localIds = localEventIdsBySourceId[sourceId].orEmpty()
                     eventIdsToDelete.addAll(localIds.filterNot { remoteIds.contains(it) })
                 }
-                is SyncResult.Failure -> when (val error = result.error) {
+                is SyncFailure -> when (val error = result.error) {
                     is SyncError.Transient -> requiresRetry = true
                     is SyncError.PermanentAuthFailure -> {
                         sourceIdsToDisable.add(sourceId)

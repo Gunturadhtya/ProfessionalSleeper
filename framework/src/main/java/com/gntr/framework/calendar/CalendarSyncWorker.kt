@@ -10,7 +10,9 @@ import com.gntr.domain.alarm.IAlarmScheduler
 import com.gntr.domain.auth.IAuthManager
 import com.gntr.domain.calendar.ICalendarSyncService
 import com.gntr.domain.calendar.SyncError
+import com.gntr.domain.calendar.SyncFailure
 import com.gntr.domain.calendar.SyncResult
+import com.gntr.domain.calendar.SyncSuccess
 import com.gntr.domain.model.CalendarEvent
 import com.gntr.domain.model.SleepSession
 import com.gntr.domain.repository.ICalendarEventRepository
@@ -60,12 +62,14 @@ class CalendarSyncWorker @AssistedInject constructor(
         val timeMin = LocalDate.now(zoneId).atStartOfDay(zoneId).toInstant().toEpochMilli()
         val timeMax = timeMin + (7L * 24 * 60 * 60 * 1000)
 
-        val resultsBySourceId = enabledSources.associate { source ->
-            source.id to calendarSyncService.fetchUpcomingEvents(accessToken, source.id, timeMin, timeMax)
+        val resultsBySourceId = mutableMapOf<String, SyncResult<List<CalendarEvent>>>()
+        for (source in enabledSources) {
+            resultsBySourceId[source.id] = calendarSyncService.fetchUpcomingEvents(accessToken, source.id, timeMin, timeMax)
         }
 
-        val localIdsBySourceId = enabledSources.associate { source ->
-            source.id to calendarEventRepository.getEventIdsForSourceAndTimeframe(source.id, timeMin, timeMax)
+        val localIdsBySourceId = mutableMapOf<String, List<String>>()
+        for (source in enabledSources) {
+            localIdsBySourceId[source.id] = calendarEventRepository.getEventIdsForSourceAndTimeframe(source.id, timeMin, timeMax)
         }
 
         val plan = buildCalendarSyncPlanUseCase(resultsBySourceId, localIdsBySourceId)
@@ -80,10 +84,12 @@ class CalendarSyncWorker @AssistedInject constructor(
                 if (plan.eventsToInsert.isNotEmpty()) {
                     calendarEventRepository.insertAll(plan.eventsToInsert)
                 }
-                plan.sourceIdsToDisable.forEach { calendarSourceRepository.disableSource(it) }
+                for (sourceId in plan.sourceIdsToDisable) {
+                    calendarSourceRepository.disableSource(sourceId)
+                }
 
                 val transientFailedSourceIds = resultsBySourceId
-                    .filterValues { it is SyncResult.Failure && it.error is SyncError.Transient }
+                    .filterValues { it is SyncFailure && it.error is SyncError.Transient }
                     .keys.toList()
 
                 val allEventsForReconciliation = plan.eventsToInsert +
@@ -93,10 +99,14 @@ class CalendarSyncWorker @AssistedInject constructor(
 
                 val localSessions = repository.getSessionsSnapshotForTimeframe(timeMin, timeMax)
                 sessionsToReschedule = reconcileScheduleUseCase(localSessions, allEventsForReconciliation)
-                sessionsToReschedule.forEach { repository.updateSession(it) }
+                for (session in sessionsToReschedule) {
+                    repository.updateSession(session)
+                }
             }
 
-            sessionsToReschedule.forEach { sleepSessionManager.updateScheduled(it) }
+            for (session in sessionsToReschedule) {
+                sleepSessionManager.updateScheduled(session)
+            }
 
             if (plan.requiresRetry) Result.retry() else Result.success()
         } catch (e: Exception) {

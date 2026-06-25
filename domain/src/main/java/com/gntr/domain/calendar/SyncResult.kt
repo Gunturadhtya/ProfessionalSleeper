@@ -1,8 +1,7 @@
 package com.gntr.domain.calendar
 
+sealed interface SyncResult<out T>
 
+data class SyncSuccess<out T>(val data: T) : SyncResult<T>
 
-sealed class SyncResult<out T> {
-    data class Success<T>(val data: T) : SyncResult<T>()
-    data class Failure(val error: SyncError) : SyncResult<Nothing>()
-}
+data class SyncFailure(val error: SyncError) : SyncResult<Nothing>

@@ -2,7 +2,9 @@ package com.gntr.framework.calendar
 
 import com.gntr.domain.calendar.ICalendarSyncService
 import com.gntr.domain.calendar.SyncError
+import com.gntr.domain.calendar.SyncFailure
 import com.gntr.domain.calendar.SyncResult
+import com.gntr.domain.calendar.SyncSuccess
 import com.gntr.domain.model.CalendarEvent
 import com.gntr.domain.model.CalendarSource
 import com.gntr.domain.model.EventTime
@@ -52,12 +54,12 @@ class GoogleCalendarServiceImpl @Inject constructor(
                 pageToken = calendarList.nextPageToken
             } while (pageToken != null)
 
-            SyncResult.Success(remoteSources)
+            SyncSuccess(remoteSources)
         } catch (e: Exception) {
             if (e is GoogleJsonResponseException && (e.statusCode == 401 || e.statusCode == 403)) {
-                SyncResult.Failure(SyncError.PermanentAuthFailure(e.statusCode, e.message ?: "Revoked"))
+                SyncFailure(SyncError.PermanentAuthFailure(e.statusCode, e.message ?: "Revoked"))
             } else {
-                SyncResult.Failure(SyncError.Transient(e))
+                SyncFailure(SyncError.Transient(e))
             }
         }
     }
@@ -109,13 +111,13 @@ class GoogleCalendarServiceImpl @Inject constructor(
             }
 
             Timber.i("Calendar sync successful for $sourceId. Parsed ${mappedEvents.size} upcoming events.")
-            SyncResult.Success(mappedEvents)
+            SyncSuccess(mappedEvents)
         } catch (e: Exception) {
             Timber.e(e, "Failed to fetch or parse Google Calendar events for $sourceId")
             if (e is GoogleJsonResponseException && (e.statusCode == 401 || e.statusCode == 403)) {
-                SyncResult.Failure(SyncError.PermanentAuthFailure(e.statusCode, e.message ?: "Revoked"))
+                SyncFailure(SyncError.PermanentAuthFailure(e.statusCode, e.message ?: "Revoked"))
             } else {
-                SyncResult.Failure(SyncError.Transient(e))
+                SyncFailure(SyncError.Transient(e))
             }
         }
     }
