@@ -39,6 +39,7 @@ import androidx.work.workDataOf
 import com.gntr.domain.auth.IAuthManager
 import com.gntr.domain.repository.IPreferencesRepository
 import com.gntr.framework.calendar.CalendarSyncWorker
+import com.gntr.framework.sync.ScheduleMaintenanceWorker
 import com.gntr.ui.Route
 import com.gntr.ui.analysis.AnalysisViewModel
 import com.gntr.ui.auth.AuthScreen
@@ -113,6 +114,7 @@ class MainActivity : ComponentActivity() {
                             viewModel = authViewModel,
                             onAuthSuccess = { userEmail ->
                                 if (userEmail != null) {
+                                    enqueueCalendarSyncEngine(this@MainActivity, userEmail)
                                     enqueueCalendarSyncEngine(this@MainActivity, userEmail)
                                 } else {
                                     Timber.i("User opted for offline execution. Bypassing Calendar Sync Engine.")
@@ -240,6 +242,18 @@ private fun enqueueCalendarSyncEngine(context: Context, accountEmail: String) {
         periodicSyncRequest
     )
     Timber.i("Unique periodic synchronization request successfully committed to WorkManager queue.")
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun enqueueScheduleMaintenanceWorker(context: Context) {
+    val request = PeriodicWorkRequestBuilder<ScheduleMaintenanceWorker>(1, TimeUnit.DAYS)
+        .build()
+
+    WorkManager.getInstance(context.applicationContext).enqueueUniquePeriodicWork(
+        "UniqueScheduleMaintenance",
+        ExistingPeriodicWorkPolicy.KEEP,
+        request
+    )
 }
 
 @Composable
