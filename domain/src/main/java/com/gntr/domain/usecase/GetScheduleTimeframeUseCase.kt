@@ -10,16 +10,16 @@ import javax.inject.Inject
 class GetScheduleTimeframeUseCase @Inject constructor() {
 
     @RequiresApi(Build.VERSION_CODES.O)
-    operator fun invoke(daysOffset: Long = 0): ScheduleTimeframe {
+    operator fun invoke(startDaysOffset: Long, endDaysOffset: Long): ScheduleTimeframe {
         val zoneId = ZoneId.systemDefault()
         val today = LocalDate.now(zoneId)
 
-        val startMilli = today.plusDays(daysOffset - 1)
+        val startMilli = today.plusDays(startDaysOffset)
             .atStartOfDay(zoneId)
             .toInstant()
             .toEpochMilli()
 
-        val endMilli = today.plusDays(daysOffset + 1)
+        val endMilli = today.plusDays(endDaysOffset + 1)
             .atStartOfDay(zoneId)
             .toInstant()
             .toEpochMilli() - 1

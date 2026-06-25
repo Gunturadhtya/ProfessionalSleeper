@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -64,8 +63,8 @@ class ScheduleViewModel @Inject constructor(
 
     val sleepSectors: StateFlow<List<SectographSector>> =
         sleepSessionRepository.getSessionsForTimeframe(
-            startEpochMilli = getTimeframe(0).startMilli,
-            endEpochMilli = getTimeframe(0).endMilli
+            startEpochMilli = getTimeframe(startDaysOffset = -1, endDaysOffset = 1).startMilli,
+            endEpochMilli = getTimeframe(startDaysOffset = -1, endDaysOffset = 1).endMilli
         )
             .map { sessions -> SectographMapper.mapSleepSessionsToSectors(sessions) }
             .flowOn(Dispatchers.Default)
@@ -73,8 +72,8 @@ class ScheduleViewModel @Inject constructor(
 
     val calendarSectors: StateFlow<List<SectographSector>> =
         calendarEventRepository.getEventsForTimeframe(
-            startEpochMilli = getTimeframe(0).startMilli,
-            endEpochMilli = getTimeframe(0).endMilli
+            startEpochMilli = getTimeframe(startDaysOffset = -1, endDaysOffset = 1).startMilli,
+            endEpochMilli = getTimeframe(startDaysOffset = -1, endDaysOffset = 1).endMilli
         )
             .map { events -> SectographMapper.mapCalendarEventsToSectors(events) }
             .flowOn(Dispatchers.Default)
@@ -83,12 +82,12 @@ class ScheduleViewModel @Inject constructor(
     val upcomingScheduleItems: StateFlow<List<ScheduleListItem>> =
         combine(
             sleepSessionRepository.getSessionsForTimeframe(
-                startEpochMilli = getTimeframe(3).startMilli,
-                endEpochMilli = getTimeframe(3).endMilli
+                startEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 3).startMilli,
+                endEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 3).endMilli
             ),
             calendarEventRepository.getEventsForTimeframe(
-                startEpochMilli = getTimeframe(3).startMilli,
-                endEpochMilli = getTimeframe(3).endMilli
+                startEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 3).startMilli,
+                endEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 3).endMilli
             )
         ) { sessions, events ->
             val sessionItems = sessions.map { session ->
