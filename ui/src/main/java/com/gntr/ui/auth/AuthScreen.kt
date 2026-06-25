@@ -5,7 +5,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -92,7 +91,7 @@ fun AuthScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 enabled = !state.isLoading,
-                shape = RoundedCornerShape(8.dp)
+                shape = MaterialTheme.shapes.small
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
@@ -112,7 +111,7 @@ fun AuthScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 enabled = !state.isLoading,
-                shape = RoundedCornerShape(8.dp)
+                shape = MaterialTheme.shapes.small
             ) {
                 Text(stringResource(R.string.auth_btn_offline))
             }

@@ -8,18 +8,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -32,7 +28,7 @@ fun QuickNapScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0A0A0A))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         when (uiState.napState) {
             QuickNapState.IDLE -> {
@@ -79,10 +75,9 @@ private fun TimerSetupContent(
         Text(
             text = "Quick Nap",
             style = MaterialTheme.typography.headlineMedium.copy(
-                color = Color.White,
-                fontWeight = FontWeight.Light,
-                letterSpacing = 2.sp
-            )
+                letterSpacing = MaterialTheme.typography.headlineMedium.letterSpacing
+            ),
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Row(
@@ -125,9 +120,8 @@ private fun TimerSetupContent(
 private fun TimeSeparator() {
     Text(
         text = ":",
-        color = Color(0xFF666666),
-        fontSize = 36.sp,
-        fontWeight = FontWeight.Thin,
+        style = MaterialTheme.typography.displaySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(horizontal = 4.dp)
     )
 }
@@ -171,30 +165,27 @@ private fun DrumPicker(
     ) {
         Text(
             text = ((value - 1 + range) % range).toString().padStart(2, '0'),
-            fontSize = 22.sp,
-            color = Color(0xFF333333),
-            fontWeight = FontWeight.Thin
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
         )
         Spacer(Modifier.height(8.dp))
         Text(
             text = value.toString().padStart(2, '0'),
-            fontSize = 56.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Light
+            style = MaterialTheme.typography.displayMedium,
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(Modifier.height(4.dp))
         Text(
             text = label,
-            fontSize = 12.sp,
-            color = Color(0xFF888888),
-            letterSpacing = 1.sp
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            letterSpacing = MaterialTheme.typography.labelSmall.letterSpacing
         )
         Spacer(Modifier.height(8.dp))
         Text(
             text = ((value + 1) % range).toString().padStart(2, '0'),
-            fontSize = 22.sp,
-            color = Color(0xFF333333),
-            fontWeight = FontWeight.Thin
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
         )
     }
 }
@@ -206,16 +197,15 @@ private fun StartButton(onClick: () -> Unit) {
         modifier = Modifier.size(100.dp),
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF1C7C6C),
-            contentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
     ) {
         Text(
             text = "START",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp
+            style = MaterialTheme.typography.labelLarge,
+            letterSpacing = MaterialTheme.typography.labelLarge.letterSpacing
         )
     }
 }
@@ -249,17 +239,17 @@ private fun CountdownContent(
         Text(
             text = "Napping...",
             style = MaterialTheme.typography.titleMedium.copy(
-                color = Color(0xFF888888),
-                letterSpacing = 2.sp
-            )
+                letterSpacing = MaterialTheme.typography.titleMedium.letterSpacing
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Box(contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 progress = { animatedProgress },
                 modifier = Modifier.size(240.dp),
-                color = Color(0xFF1C7C6C),
-                trackColor = Color(0xFF1A2A28),
+                color = MaterialTheme.colorScheme.tertiary,
+                trackColor = MaterialTheme.colorScheme.tertiaryContainer,
                 strokeWidth = 6.dp
             )
 
@@ -271,31 +261,35 @@ private fun CountdownContent(
                 }
                 Text(
                     text = timeStr,
-                    fontSize = 52.sp,
-                    fontWeight = FontWeight.Thin,
-                    color = Color.White,
-                    letterSpacing = 2.sp
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    letterSpacing = MaterialTheme.typography.displayMedium.letterSpacing
                 )
                 Text(
                     text = "remaining",
-                    fontSize = 12.sp,
-                    color = Color(0xFF666666)
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
         OutlinedButton(
             onClick = onCancel,
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFCC4444)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCC4444)),
+            shape = MaterialTheme.shapes.large,
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.error
+            ),
             modifier = Modifier
                 .fillMaxWidth(0.5f)
                 .height(52.dp)
         ) {
             Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Cancel", fontSize = 15.sp)
+            Text("Cancel", style = MaterialTheme.typography.labelLarge)
         }
 
         Spacer(Modifier.height(32.dp))

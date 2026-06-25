@@ -2,6 +2,7 @@ package com.gntr.ui.analysis
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -15,17 +16,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.gntr.ui.theme.JetBrainsMono
-import com.gntr.ui.theme.SleepDebtColor
-import com.gntr.ui.theme.NapSleepColor
 import kotlin.math.abs
-
-private val DebtBarColor = SleepDebtColor
-private val SurplusBarColor = NapSleepColor
-private val GridColor = Color.Gray.copy(alpha = 0.15f)
-private val BaselineColor = Color.Gray.copy(alpha = 0.4f)
-private val LabelColor = Color.Gray
 
 @Composable
 fun SleepDebtBarChart(
@@ -37,10 +29,30 @@ fun SleepDebtBarChart(
 ) {
     val textMeasurer = rememberTextMeasurer()
 
+    val debtBarColor = MaterialTheme.colorScheme.error
+    val surplusBarColor = MaterialTheme.colorScheme.tertiary
+    val gridColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    val baselineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val labelStyle = TextStyle(
+        fontFamily = JetBrainsMono,
+        fontSize = MaterialTheme.typography.labelSmall.fontSize,
+        color = labelColor
+    )
+
     androidx.compose.foundation.layout.Spacer(
         modifier = modifier.drawBehind {
             if (values.isEmpty()) return@drawBehind
-            drawDebtChart(values, dateLabels, textMeasurer)
+            drawDebtChart(
+                values = values,
+                labels = dateLabels,
+                measurer = textMeasurer,
+                debtBarColor = debtBarColor,
+                surplusBarColor = surplusBarColor,
+                gridColor = gridColor,
+                baselineColor = baselineColor,
+                labelStyle = labelStyle
+            )
         }
     )
 }
@@ -48,7 +60,12 @@ fun SleepDebtBarChart(
 private fun DrawScope.drawDebtChart(
     values: List<Float>,
     labels: List<String>,
-    measurer: TextMeasurer
+    measurer: TextMeasurer,
+    debtBarColor: Color,
+    surplusBarColor: Color,
+    gridColor: Color,
+    baselineColor: Color,
+    labelStyle: TextStyle
 ) {
     val labelHeight = 20.dp.toPx()
     val paddingLeft = 40.dp.toPx()
@@ -61,19 +78,13 @@ private fun DrawScope.drawDebtChart(
 
     val maxAbs = values.maxOfOrNull { abs(it) }?.coerceAtLeast(30f) ?: 30f
 
-    val labelStyle = TextStyle(
-        fontFamily = JetBrainsMono,
-        fontSize = 9.sp,
-        color = LabelColor
-    )
-
     val baselineY = paddingTop + chartH / 2f
     fun yFor(minutes: Float): Float = baselineY - (minutes / maxAbs) * (chartH / 2f)
 
     listOf(-maxAbs, 0f, maxAbs).forEach { level ->
         val y = yFor(level)
         drawLine(
-            color = if (level == 0f) BaselineColor else GridColor,
+            color = if (level == 0f) baselineColor else gridColor,
             start = Offset(paddingLeft, y),
             end = Offset(size.width - paddingRight, y),
             strokeWidth = if (level == 0f) 1.5f.dp.toPx() else 1.dp.toPx()
@@ -99,7 +110,7 @@ private fun DrawScope.drawDebtChart(
         val barTop = yFor(debt)
         val barHeight = abs(barTop - baselineY).coerceAtLeast(2.dp.toPx())
         val topY = minOf(barTop, baselineY)
-        val color = if (debt >= 0f) DebtBarColor else SurplusBarColor
+        val color = if (debt >= 0f) debtBarColor else surplusBarColor
 
         drawRoundRect(
             color = color,

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -25,11 +24,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gntr.ui.theme.CoreSleepColor
-import com.gntr.ui.theme.SleepDebtColor
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -48,7 +45,7 @@ fun SleepAnalysisSheetContent(viewModel: AnalysisViewModel) {
                 .height(4.dp)
                 .background(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                    shape = RoundedCornerShape(2.dp)
+                    shape = MaterialTheme.shapes.extraSmall
                 )
         )
 
@@ -125,13 +122,13 @@ private fun SuccessContent(
             SummaryCard(
                 label = "Adherence",
                 value = state.overallScore,
-                accentColor = CoreSleepColor,
+                accentColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f)
             )
             SummaryCard(
                 label = "Total Debt",
                 value = state.totalDebtLabel,
-                accentColor = SleepDebtColor,
+                accentColor = MaterialTheme.colorScheme.error,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -169,12 +166,12 @@ private fun SuccessContent(
 private fun SummaryCard(
     label: String,
     value: String,
-    accentColor: androidx.compose.ui.graphics.Color,
+    accentColor: Color,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
@@ -187,7 +184,6 @@ private fun SummaryCard(
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
                 color = accentColor
             )
         }
@@ -202,16 +198,15 @@ private fun ChartCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface
         )
         content()
     }

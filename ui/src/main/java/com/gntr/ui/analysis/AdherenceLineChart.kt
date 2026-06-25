@@ -2,6 +2,7 @@ package com.gntr.ui.analysis
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -18,17 +19,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.gntr.ui.theme.CoreSleepColor
 import com.gntr.ui.theme.JetBrainsMono
 import kotlin.math.roundToInt
-
-private val LineColor = CoreSleepColor
-private val GridColor = Color.Gray.copy(alpha = 0.15f)
-private val FillStart = LineColor.copy(alpha = 0.25f)
-private val FillEnd = LineColor.copy(alpha = 0f)
-private val DotColor = Color.White
-private val LabelColor = Color.Gray
 
 @Composable
 fun AdherenceLineChart(
@@ -40,19 +32,46 @@ fun AdherenceLineChart(
 ) {
     val textMeasurer = rememberTextMeasurer()
 
+    val lineColor = MaterialTheme.colorScheme.primary
+    val gridColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    val dotColor = MaterialTheme.colorScheme.onPrimary
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val fillStart = lineColor.copy(alpha = 0.25f)
+    val fillEnd = lineColor.copy(alpha = 0f)
+    val labelStyle = TextStyle(
+        fontFamily = JetBrainsMono,
+        fontSize = MaterialTheme.typography.labelSmall.fontSize,
+        color = labelColor
+    )
+
     androidx.compose.foundation.layout.Spacer(
         modifier = modifier.drawBehind {
             if (points.size < 2) return@drawBehind
-            drawAdherenceChart(points, dateLabels, textMeasurer)
+            drawAdherenceChart(
+                points = points,
+                labels = dateLabels,
+                measurer = textMeasurer,
+                lineColor = lineColor,
+                gridColor = gridColor,
+                dotColor = dotColor,
+                fillStart = fillStart,
+                fillEnd = fillEnd,
+                labelStyle = labelStyle
+            )
         }
     )
 }
 
-
 private fun DrawScope.drawAdherenceChart(
     points: List<Float>,
     labels: List<String>,
-    measurer: TextMeasurer
+    measurer: TextMeasurer,
+    lineColor: Color,
+    gridColor: Color,
+    dotColor: Color,
+    fillStart: Color,
+    fillEnd: Color,
+    labelStyle: TextStyle
 ) {
     val labelHeight = 20.dp.toPx()
     val paddingLeft = 36.dp.toPx()
@@ -69,15 +88,10 @@ private fun DrawScope.drawAdherenceChart(
     fun yAt(v: Float): Float = paddingTop + chartH * (1f - v.coerceIn(0f, 1f))
 
     val gridLevels = listOf(0f, 0.5f, 1f)
-    val labelStyle = TextStyle(
-        fontFamily = JetBrainsMono,
-        fontSize = 9.sp,
-        color = LabelColor
-    )
     gridLevels.forEach { level ->
         val y = yAt(level)
         drawLine(
-            color = GridColor,
+            color = gridColor,
             start = Offset(paddingLeft, y),
             end = Offset(size.width - paddingRight, y),
             strokeWidth = 1.dp.toPx()
@@ -109,7 +123,7 @@ private fun DrawScope.drawAdherenceChart(
     drawPath(
         path = fillPath,
         brush = Brush.verticalGradient(
-            colors = listOf(FillStart, FillEnd),
+            colors = listOf(fillStart, fillEnd),
             startY = paddingTop,
             endY = paddingTop + chartH
         )
@@ -127,7 +141,7 @@ private fun DrawScope.drawAdherenceChart(
     }
     drawPath(
         path = linePath,
-        color = LineColor,
+        color = lineColor,
         style = Stroke(
             width = 2.dp.toPx(),
             cap = StrokeCap.Round,
@@ -137,8 +151,8 @@ private fun DrawScope.drawAdherenceChart(
 
     val dotRadius = 3.dp.toPx()
     points.forEachIndexed { i, v ->
-        drawCircle(color = LineColor, radius = dotRadius + 1.dp.toPx(), center = Offset(xAt(i), yAt(v)))
-        drawCircle(color = DotColor, radius = dotRadius, center = Offset(xAt(i), yAt(v)))
+        drawCircle(color = lineColor, radius = dotRadius + 1.dp.toPx(), center = Offset(xAt(i), yAt(v)))
+        drawCircle(color = dotColor, radius = dotRadius, center = Offset(xAt(i), yAt(v)))
     }
 
     val labelEvery = when {

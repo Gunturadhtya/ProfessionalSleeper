@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Edit
@@ -30,14 +29,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gntr.ui.R
 import com.gntr.ui.analysis.AnalysisViewModel
 import com.gntr.ui.analysis.SleepAnalysisSheetContent
 import com.gntr.ui.schedule.sectograph.Sectograph
-import com.gntr.ui.theme.CalendarEventColor
 import com.gntr.ui.theme.JetBrainsMono
 import kotlinx.coroutines.delay
 import java.time.ZonedDateTime
@@ -46,8 +44,6 @@ import java.time.format.FormatStyle
 import androidx.core.graphics.toColorInt
 import com.gntr.domain.model.SessionStatus
 import com.gntr.domain.model.SessionType
-import com.gntr.ui.theme.CoreSleepColor
-import com.gntr.ui.theme.NapSleepColor
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -246,7 +242,6 @@ private fun DateSectionHeader(date: LocalDate, sessionCount: Int) {
         Text(
             text = date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)),
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
         if (sessionCount > 0) {
@@ -267,7 +262,7 @@ private fun DateSectionHeader(date: LocalDate, sessionCount: Int) {
 @Composable
 private fun EmptyScheduleCard() {
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -288,11 +283,15 @@ private fun EmptyScheduleCard() {
 
 @Composable
 fun SessionCard(session: SleepSessionUiModel, onEditClick: () -> Unit) {
-    val accentColor = if (session.type == SessionType.CORE) CoreSleepColor else NapSleepColor
+    val accentColor = if (session.type == SessionType.CORE)
+        MaterialTheme.colorScheme.primary
+    else
+        MaterialTheme.colorScheme.tertiary
+
     val (statusLabel, statusBgColor, statusTextColor) = getSessionDisplayState(session)
 
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -319,8 +318,7 @@ fun SessionCard(session: SleepSessionUiModel, onEditClick: () -> Unit) {
                     Text(
                         text = session.typeLabel,
                         style = MaterialTheme.typography.labelMedium,
-                        color = accentColor,
-                        fontWeight = FontWeight.SemiBold
+                        color = accentColor
                     )
                     StatusChip(
                         label = statusLabel,
@@ -367,16 +365,21 @@ fun SessionCard(session: SleepSessionUiModel, onEditClick: () -> Unit) {
 
 @Composable
 private fun CalendarEventCard(event: CalendarEventUiModel) {
-    val tagColor = remember(event.tagColorHex) {
+    val surface = MaterialTheme.colorScheme.surface
+    val fallback = MaterialTheme.colorScheme.onSurfaceVariant
+
+    val resolvedTagColor = remember(event.tagColorHex, surface) {
         try {
             Color(color = event.tagColorHex.toColorInt())
+                .copy(alpha = 0.85f)
+                .compositeOver(surface)
         } catch (_: Exception) {
-            CalendarEventColor
+            fallback
         }
     }
 
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -386,7 +389,7 @@ private fun CalendarEventCard(event: CalendarEventUiModel) {
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(6.dp)
-                    .background(tagColor)
+                    .background(resolvedTagColor)
             )
 
             Row(
@@ -399,7 +402,7 @@ private fun CalendarEventCard(event: CalendarEventUiModel) {
                 Icon(
                     imageVector = Icons.Default.Event,
                     contentDescription = null,
-                    tint = tagColor,
+                    tint = resolvedTagColor,
                     modifier = Modifier.padding(top = 2.dp)
                 )
 
@@ -412,7 +415,6 @@ private fun CalendarEventCard(event: CalendarEventUiModel) {
                         Text(
                             text = event.title,
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -421,8 +423,8 @@ private fun CalendarEventCard(event: CalendarEventUiModel) {
                         Spacer(modifier = Modifier.width(8.dp))
                         StatusChip(
                             label = event.tagLabel,
-                            bgColor = tagColor.copy(alpha = 0.15f),
-                            textColor = tagColor
+                            bgColor = resolvedTagColor.copy(alpha = 0.15f),
+                            textColor = resolvedTagColor
                         )
                     }
                     Text(
@@ -444,7 +446,7 @@ private fun StatusChip(
 ) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(50))
+            .clip(MaterialTheme.shapes.large)
             .background(bgColor)
             .padding(horizontal = 10.dp, vertical = 3.dp)
     ) {
@@ -452,7 +454,6 @@ private fun StatusChip(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = textColor,
-            fontWeight = FontWeight.Medium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -461,7 +462,10 @@ private fun StatusChip(
 
 @Composable
 fun getSessionDisplayState(session: SleepSessionUiModel): Triple<String, Color, Color> {
-    val accentColor = if (session.type == SessionType.CORE) CoreSleepColor else NapSleepColor
+    val accentColor = if (session.type == SessionType.CORE)
+        MaterialTheme.colorScheme.primary
+    else
+        MaterialTheme.colorScheme.tertiary
 
     return when {
         session.status == SessionStatus.CANCELLED -> Triple(

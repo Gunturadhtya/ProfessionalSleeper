@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -46,8 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gntr.ui.R
 import com.gntr.domain.model.SessionType
-import com.gntr.ui.theme.CoreSleepColor
-import com.gntr.ui.theme.NapSleepColor
 import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
@@ -166,7 +163,12 @@ private fun SleepTypeSelector(
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             SessionType.entries.forEach { type ->
-                val accent = if (type == SessionType.CORE) CoreSleepColor else NapSleepColor
+                // Route session type to the correct semantic colorScheme role
+                val accent = if (type == SessionType.CORE)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.tertiary
+
                 val label = if (type == SessionType.CORE) {
                     stringResource(R.string.session_type_core)
                 } else {
@@ -200,7 +202,7 @@ private fun TimeField(
 
     Card(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
     ) {

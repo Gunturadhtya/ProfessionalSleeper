@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -21,7 +22,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import java.time.ZonedDateTime
 import kotlin.math.cos
 import kotlin.math.sin
@@ -34,6 +34,15 @@ fun Sectograph(
     modifier: Modifier = Modifier
 ) {
     val textMeasurer = rememberTextMeasurer()
+
+    val ringColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    val tickColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val needleColor = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+    val labelStyle = TextStyle(
+        fontSize = MaterialTheme.typography.labelSmall.fontSize,
+        color = labelColor
+    )
 
     Spacer(
         modifier = modifier
@@ -49,7 +58,7 @@ fun Sectograph(
 
                 rotate(degrees = -90f, pivot = center) {
 
-                    drawStaticLayer(radius, center, textMeasurer)
+                    drawStaticLayer(radius, center, textMeasurer, ringColor, tickColor, labelStyle)
 
                     val innerRadiusPx = radius * 0.6f
                     val innerStrokeWidth = radius * 0.15f
@@ -63,15 +72,22 @@ fun Sectograph(
                         drawSectorArc(sector, outerRadiusPx, outerStrokeWidth, center)
                     }
 
-                    drawCurrentTimeNeedle(currentTime, radius, center)
+                    drawCurrentTimeNeedle(currentTime, radius, center, needleColor)
                 }
             }
     )
 }
 
-private fun DrawScope.drawStaticLayer(radius: Float, center: Offset, textMeasurer: TextMeasurer) {
+private fun DrawScope.drawStaticLayer(
+    radius: Float,
+    center: Offset,
+    textMeasurer: TextMeasurer,
+    ringColor: Color,
+    tickColor: Color,
+    labelStyle: TextStyle
+) {
     drawCircle(
-        color = Color.LightGray.copy(alpha = 0.2f),
+        color = ringColor,
         radius = radius,
         center = center,
         style = Stroke(width = 1.dp.toPx())
@@ -86,7 +102,7 @@ private fun DrawScope.drawStaticLayer(radius: Float, center: Offset, textMeasure
 
         rotate(degrees = angle, pivot = center) {
             drawLine(
-                color = Color.Gray.copy(alpha = 0.5f),
+                color = tickColor,
                 start = Offset(center.x + radius - lineLength, center.y),
                 end = Offset(center.x + radius, center.y),
                 strokeWidth = strokeWidth
@@ -95,7 +111,6 @@ private fun DrawScope.drawStaticLayer(radius: Float, center: Offset, textMeasure
     }
 
     val labelRadius = radius + 24.dp.toPx()
-    val textStyle = TextStyle(fontSize = 12.sp, color = Color.Gray)
     val hours = listOf(0, 6, 12, 18)
 
     hours.forEach { hour ->
@@ -107,7 +122,7 @@ private fun DrawScope.drawStaticLayer(radius: Float, center: Offset, textMeasure
 
         val textLayoutResult = textMeasurer.measure(
             text = String.format("%02d:00", hour),
-            style = textStyle
+            style = labelStyle
         )
 
         rotate(degrees = 90f, pivot = Offset(x, y)) {
@@ -146,14 +161,15 @@ private fun DrawScope.drawSectorArc(
 private fun DrawScope.drawCurrentTimeNeedle(
     currentTime: ZonedDateTime,
     radius: Float,
-    center: Offset
+    center: Offset,
+    needleColor: Color
 ) {
     val totalMinutes = (currentTime.hour * 60) + currentTime.minute
     val angleDeg = (totalMinutes / 1440f) * 360f
 
     rotate(degrees = angleDeg, pivot = center) {
         drawLine(
-            color = Color.Red.copy(alpha = 0.8f),
+            color = needleColor,
             start = center,
             end = Offset(center.x + radius * 0.85f, center.y),
             strokeWidth = 3.dp.toPx(),
@@ -161,7 +177,7 @@ private fun DrawScope.drawCurrentTimeNeedle(
         )
 
         drawCircle(
-            color = Color.Red.copy(alpha = 0.8f),
+            color = needleColor,
             radius = 6.dp.toPx(),
             center = center
         )

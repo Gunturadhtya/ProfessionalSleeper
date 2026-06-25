@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -111,7 +110,6 @@ private fun LoggedInContent(
         Text(
             text = name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.profile_signed_in),
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
@@ -131,7 +129,7 @@ private fun LoggedInContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            shape = MaterialTheme.shapes.small,
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.error
             )
@@ -148,7 +146,7 @@ private fun LoggedInContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            shape = MaterialTheme.shapes.small,
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.error
             )
@@ -201,7 +199,6 @@ private fun GuestContent(onLoginClick: () -> Unit) {
         Text(
             text = stringResource(R.string.profile_guest),
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
@@ -221,7 +218,7 @@ private fun GuestContent(onLoginClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+            shape = MaterialTheme.shapes.small
         ) {
             Icon(Icons.AutoMirrored.Filled.Login, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
@@ -235,7 +232,7 @@ private fun GuestContent(onLoginClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            shape = MaterialTheme.shapes.small,
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.error
             )
