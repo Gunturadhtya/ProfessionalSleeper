@@ -57,10 +57,6 @@ fun QuickNapScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Timer setup
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun TimerSetupContent(
     hours: Int,
@@ -145,12 +141,10 @@ private fun DrumPicker(
     modifier: Modifier = Modifier
 ) {
     val range = max + 1
-    val itemHeightPx = 72f // pixels the user must drag to move by 1 unit
+    val itemHeightPx = 72f
 
-    // Capture the latest value to avoid stale closures in pointerInput(Unit)
     val currentValue by rememberUpdatedState(newValue = value)
 
-    // Anchors captured at the START of each drag — never mutated mid-gesture
     var anchorValue by remember { mutableStateOf(0) }
     var totalDragPx by remember { mutableStateOf(0f) }
 
@@ -225,10 +219,6 @@ private fun StartButton(onClick: () -> Unit) {
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Countdown
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun CountdownContent(

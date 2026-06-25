@@ -25,7 +25,6 @@ class PreSessionNotificationReceiver : BroadcastReceiver() {
         val typeLabel = if (sessionType == "NAP") "nap" else "core sleep session"
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Ensure channel exists
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 PreSessionNotificationScheduler.PRE_SESSION_CHANNEL_ID,

@@ -80,4 +80,5 @@
     <string name="settings_instruction">Choose the app that will automatically open when the alarm is turned off:</string>
     <string name="settings_bypass_dnd_title">Bypass Do Not Disturb</string>
     <string name="settings_bypass_dnd_subtitle">Allow alarms to ring even when DND is active (opens system settings)</string>
+    <string name="status_cancelled">Cancelled</string>
 </resources>

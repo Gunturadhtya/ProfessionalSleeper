@@ -5,17 +5,14 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gntr.domain.alarm.IAlarmScheduler
 import com.gntr.domain.auth.IAuthManager
 import com.gntr.domain.calendar.ISyncManager
-import com.gntr.domain.model.SessionStatus
-import com.gntr.domain.model.SessionType
-import com.gntr.domain.model.SleepSession
 import com.gntr.domain.repository.ICalendarEventRepository
 import com.gntr.domain.repository.IPreferencesRepository
 import com.gntr.domain.repository.ISleepSessionRepository
 import com.gntr.domain.service.SleepSessionManager
 import com.gntr.domain.usecase.GetScheduleTimeframeUseCase
+import com.gntr.domain.usecase.ReconcileSessionStatusUseCase
 import com.gntr.domain.usecase.TriggerDebugAlarmUseCase
 import com.gntr.ui.schedule.sectograph.SectographMapper
 import com.gntr.ui.schedule.sectograph.SectographSector
@@ -49,8 +46,15 @@ class ScheduleViewModel @Inject constructor(
     private val authManager: IAuthManager,
     private val syncManager: ISyncManager,
     private val getTimeframe: GetScheduleTimeframeUseCase,
-    private val triggerDebugAlarmUseCase: TriggerDebugAlarmUseCase
+    private val triggerDebugAlarmUseCase: TriggerDebugAlarmUseCase,
+    private val reconcileSessionStatusUseCase: ReconcileSessionStatusUseCase
 ) : ViewModel() {
+
+    init {
+        viewModelScope.launch {
+            reconcileSessionStatusUseCase()
+        }
+    }
 
     private val _resetEvents = Channel<Unit>(Channel.BUFFERED)
     val resetEvents: Flow<Unit> = _resetEvents.receiveAsFlow()

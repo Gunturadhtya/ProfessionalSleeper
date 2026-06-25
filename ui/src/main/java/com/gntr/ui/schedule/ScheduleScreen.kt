@@ -42,6 +42,10 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import androidx.core.graphics.toColorInt
+import com.gntr.domain.model.SessionStatus
+import com.gntr.domain.model.SessionType
+import com.gntr.ui.theme.CoreSleepColor
+import com.gntr.ui.theme.NapSleepColor
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -176,12 +180,11 @@ fun ScheduleScreen(
                 }
             }
 
-            // Quick Nap FAB overlaid above the bottom sheet peek area
             ExtendedFloatingActionButton(
                 onClick = onNavigateToQuickNap,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 96.dp), // 80.dp sheet peek + 16.dp gap
+                    .padding(end = 16.dp, bottom = 96.dp),
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary,
                 text = { Text("Quick Nap") },
@@ -192,7 +195,7 @@ fun ScheduleScreen(
                     )
                 }
             )
-        } // end outer Box
+        }
     }
 
     if (showResetDialog) {
@@ -286,6 +289,9 @@ private fun EmptyScheduleCard() {
 
 @Composable
 fun SessionCard(session: SleepSessionUiModel, onEditClick: () -> Unit) {
+    val accentColor = if (session.type == SessionType.CORE) CoreSleepColor else NapSleepColor
+    val (statusLabel, statusBgColor, statusTextColor) = getSessionDisplayState(session)
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -297,7 +303,7 @@ fun SessionCard(session: SleepSessionUiModel, onEditClick: () -> Unit) {
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(6.dp)
-                    .background(session.accentColor)
+                    .background(accentColor)
             )
 
             Column(
@@ -314,13 +320,13 @@ fun SessionCard(session: SleepSessionUiModel, onEditClick: () -> Unit) {
                     Text(
                         text = session.typeLabel,
                         style = MaterialTheme.typography.labelMedium,
-                        color = session.accentColor,
+                        color = accentColor,
                         fontWeight = FontWeight.SemiBold
                     )
                     StatusChip(
-                        label = session.statusLabel,
-                        bgColor = session.statusBgColor,
-                        textColor = session.statusTextColor
+                        label = statusLabel,
+                        bgColor = statusBgColor,
+                        textColor = statusTextColor
                     )
                 }
 
@@ -498,5 +504,33 @@ private fun SleepAnalysisSheetContent() {
         }
 
         Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+fun getSessionDisplayState(session: SleepSessionUiModel): Triple<String, Color, Color> {
+    val accentColor = if (session.type == SessionType.CORE) CoreSleepColor else NapSleepColor
+
+    return when {
+        session.status == SessionStatus.CANCELLED -> Triple(
+            stringResource(R.string.status_cancelled),
+            MaterialTheme.colorScheme.errorContainer,
+            MaterialTheme.colorScheme.onErrorContainer
+        )
+        session.status == SessionStatus.COMPLETED || session.isPast -> Triple(
+            stringResource(R.string.status_done),
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        session.isOngoing -> Triple(
+            stringResource(R.string.status_ongoing),
+            accentColor.copy(alpha = 0.15f),
+            accentColor
+        )
+        else -> Triple(
+            stringResource(R.string.status_upcoming),
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }

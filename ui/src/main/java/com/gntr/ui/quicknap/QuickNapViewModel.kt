@@ -88,8 +88,6 @@ class QuickNapViewModel @Inject constructor(
                 remaining--
                 _uiState.update { it.copy(remainingSeconds = remaining) }
             }
-            // Once countdown reaches 0, the OS AlarmManager will trigger AlarmReceiver
-            // -> AlarmService -> RingingActivity. We just let it idle at 00:00 until then.
         }
     }
 

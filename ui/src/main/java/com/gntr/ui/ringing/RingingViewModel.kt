@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.gntr.domain.alarm.IAlarmController
 import com.gntr.domain.alarm.IAlarmScheduler
 import com.gntr.domain.alarm.IAppLauncher
+import com.gntr.domain.model.SessionStatus
 import com.gntr.domain.model.SleepSession
 import com.gntr.domain.repository.IPreferencesRepository
 import com.gntr.domain.repository.ISleepSessionRepository
@@ -37,6 +38,11 @@ class RingingViewModel @Inject constructor(
     fun dismissAlarmAndWork() {
         alarmController.stopRinging()
         viewModelScope.launch {
+            _currentSession.value?.let { session ->
+                val completedSession = session.copy(status = SessionStatus.COMPLETED)
+                sleepSessionRepository.updateSession(completedSession)
+            }
+
             val targetPackage = prefsRepo.targetAppPackageFlow.first()
             appLauncher.launchTargetApp(targetPackage)
         }

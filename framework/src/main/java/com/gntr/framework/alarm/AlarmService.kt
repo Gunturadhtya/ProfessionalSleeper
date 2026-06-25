@@ -67,8 +67,6 @@ class AlarmService : Service() {
             startForeground(1001, notification)
             Timber.d("startForeground succeeded for sessionId=$sessionId")
 
-            // Explicitly force the Activity to launch to bypass heads-up downgrade
-            // when the app is already in the foreground.
             ringingIntentProvider.launchRingingActivity(sessionId)
 
         } catch (e: Exception) {

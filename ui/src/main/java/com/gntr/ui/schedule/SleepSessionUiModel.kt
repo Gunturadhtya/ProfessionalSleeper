@@ -9,12 +9,10 @@ data class SleepSessionUiModel(
     val timeRange: String,
     val durationText: String,
     val typeLabel: String,
-    val accentColor: Color,
-    val statusLabel: String,
-    val statusBgColor: Color,
-    val statusTextColor: Color,
     val type: SessionType,
     val status: SessionStatus,
+    val isOngoing: Boolean,
+    val isPast: Boolean,
     val startTimeMillis: Long,
     val endTimeMillis: Long
 )

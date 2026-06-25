@@ -21,7 +21,7 @@ class PreSessionNotificationScheduler(private val context: Context) : IPreSessio
         const val EXTRA_SESSION_ID = "PRE_SESSION_EXTRA_SESSION_ID"
         const val EXTRA_SESSION_TYPE = "PRE_SESSION_EXTRA_SESSION_TYPE"
         const val EXTRA_LEAD_SECONDS = "PRE_SESSION_EXTRA_LEAD_SECONDS"
-        val LEAD_TIME_OPTIONS_SECONDS = listOf(2L, 10L, 300L) // 2s, 10s, 5 min
+        val LEAD_TIME_OPTIONS_SECONDS = listOf(2L, 10L, 300L)
 
         fun pendingIntentFor(context: Context, sessionId: Long): PendingIntent {
             val intent = Intent(context, PreSessionNotificationReceiver::class.java).apply {
