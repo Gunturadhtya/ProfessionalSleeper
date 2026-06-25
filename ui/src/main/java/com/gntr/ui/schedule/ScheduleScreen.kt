@@ -99,13 +99,6 @@ fun ScheduleScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium) },
                 actions = {
-                    IconButton(onClick = { viewModel.triggerDebugAlarm() }) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = stringResource(R.string.cd_debug_alarm),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
                     IconButton(onClick = { showResetDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.RestartAlt,
