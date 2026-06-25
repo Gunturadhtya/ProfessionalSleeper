@@ -33,4 +33,8 @@ class CalendarSourceRepositoryImpl @Inject constructor(
     override suspend fun deleteOrphanedSources(validIds: List<String>) {
         dao.deleteOrphanedSources(validIds)
     }
+
+    override suspend fun disableSource(sourceId: String) {
+        dao.disableSource(sourceId)
+    }
 }

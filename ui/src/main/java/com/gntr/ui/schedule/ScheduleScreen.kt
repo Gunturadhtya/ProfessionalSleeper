@@ -469,6 +469,11 @@ fun getSessionDisplayState(session: SleepSessionUiModel): Triple<String, Color, 
             MaterialTheme.colorScheme.errorContainer,
             MaterialTheme.colorScheme.onErrorContainer
         )
+        session.status == SessionStatus.BLOCKED_BY_EVENT -> Triple(
+            "Blocked",
+            MaterialTheme.colorScheme.errorContainer,
+            MaterialTheme.colorScheme.onErrorContainer
+        )
         session.status == SessionStatus.COMPLETED || session.isPast -> Triple(
             stringResource(R.string.status_done),
             MaterialTheme.colorScheme.surfaceVariant,

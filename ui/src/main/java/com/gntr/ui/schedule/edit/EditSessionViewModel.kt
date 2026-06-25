@@ -10,6 +10,7 @@ import com.gntr.domain.model.SessionStatus
 import com.gntr.domain.service.SleepSessionManager
 import com.gntr.domain.model.SessionType
 import com.gntr.domain.alarm.IAlarmScheduler
+import com.gntr.domain.calendar.ISyncManager
 import com.gntr.domain.repository.ISleepSessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -22,14 +23,13 @@ import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
 
-
-
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class EditSessionViewModel @Inject constructor(
     private val repository: ISleepSessionRepository,
     private val alarmScheduler: IAlarmScheduler,
     private val sleepSessionManager: SleepSessionManager,
+    private val syncManager: ISyncManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -105,7 +105,7 @@ class EditSessionViewModel @Inject constructor(
             )
 
             sleepSessionManager.updateScheduled(updated)
-
+            syncManager.triggerCalendarSync()
             _saveEvents.send(Unit)
         }
     }

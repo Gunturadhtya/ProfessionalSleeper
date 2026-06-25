@@ -9,4 +9,5 @@ interface ICalendarSourceRepository {
     suspend fun insertSources(sources: List<CalendarSource>)
     suspend fun updateSource(source: CalendarSource)
     suspend fun deleteOrphanedSources(validIds: List<String>)
+    suspend fun disableSource(sourceId: String)
 }

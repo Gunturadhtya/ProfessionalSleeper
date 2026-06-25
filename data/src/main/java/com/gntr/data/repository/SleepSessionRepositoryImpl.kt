@@ -21,12 +21,12 @@ class SleepSessionRepositoryImpl @Inject constructor(
     private val dao: SleepSessionDao
 ) : ISleepSessionRepository {
 
-    private val formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME
+    private val writeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX").withZone(ZoneOffset.UTC)
 
     private fun Long.toUtcIso(): String =
         Instant.ofEpochMilli(this)
             .atZone(ZoneOffset.UTC)
-            .format(formatter)
+            .format(writeFormatter)
 
     override suspend fun insertSession(session: SleepSession): Long =
         dao.insertSession(session.toEntity())

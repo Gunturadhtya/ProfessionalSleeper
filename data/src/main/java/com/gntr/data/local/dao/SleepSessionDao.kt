@@ -31,22 +31,20 @@ interface SleepSessionDao {
 
     @Query("""
         SELECT * FROM sleep_sessions
-        WHERE startTime >= :startIso
+        WHERE endTime >= :startIso
           AND startTime <= :endIso
-          AND status IN ('SCHEDULED', 'COMPLETED')
         ORDER BY startTime ASC
         """)
     fun getSessionsForTimeframe(startIso: String, endIso: String): Flow<List<SleepSessionEntity>>
 
     @Query("""
         SELECT * FROM sleep_sessions
-        WHERE startTime >= :startIso
+        WHERE endTime >= :startIso
           AND startTime <= :endIso
-          AND status IN ('SCHEDULED', 'COMPLETED')
         ORDER BY startTime ASC
         """)
     suspend fun getSessionsSnapshotForTimeframe(startIso: String, endIso: String): List<SleepSessionEntity>
 
-    @Query("SELECT * FROM sleep_sessions WHERE startTime >= :timeframeStart AND status IN ('COMPLETED', 'SCHEDULED')")
+    @Query("SELECT * FROM sleep_sessions WHERE startTime >= :timeframeStart")
     fun getSessionsForAnalytics(timeframeStart: Long): Flow<List<SleepSessionEntity>>
 }

@@ -22,5 +22,6 @@ data class CalendarEventEntity(
     val sourceId: String,
     val title: String,
     val startTime: Long,
-    val endTime: Long
+    val endTime: Long,
+    val isAllDay: Boolean
 )

@@ -12,7 +12,10 @@ import java.time.format.DateTimeFormatter
 
 class Converters {
     @RequiresApi(Build.VERSION_CODES.O)
-    private val formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME
+    private val writeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX").withZone(ZoneOffset.UTC)
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private val readFormatter = DateTimeFormatter.ISO_ZONED_DATE_TIME
 
     @TypeConverter
     fun fromSessionType(value: SessionType): String = value.name
@@ -29,14 +32,14 @@ class Converters {
     @RequiresApi(Build.VERSION_CODES.O)
     @TypeConverter
     fun fromZonedDateTime(value: ZonedDateTime?): String? {
-        return value?.withZoneSameInstant(ZoneOffset.UTC)?.format(formatter)
+        return value?.format(writeFormatter)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     @TypeConverter
     fun toZonedDateTime(value: String?): ZonedDateTime? {
         return value?.let {
-            ZonedDateTime.parse(it, formatter).withZoneSameInstant(ZoneId.systemDefault())
+            ZonedDateTime.parse(it, readFormatter).withZoneSameInstant(ZoneId.systemDefault())
         }
     }
 }

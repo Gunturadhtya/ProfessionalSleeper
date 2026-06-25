@@ -2,6 +2,7 @@ package com.gntr.domain.usecase
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.gntr.domain.model.SessionStatus
 import com.gntr.domain.model.SleepDebt
 import com.gntr.domain.repository.ISleepDebtRepository
 import com.gntr.domain.repository.ISleepSessionRepository
@@ -27,9 +28,11 @@ class CalculateSleepDebtUseCase @Inject constructor(
         transactionRunner {
             val sessionsToday = sessionRepository.getSessionsSnapshotForDay(startOfDay, endOfDay)
 
-            val totalSleepMinutes = sessionsToday.sumOf { session ->
-                Duration.between(session.startTime, session.endTime).toMinutes().toInt()
-            }
+            val totalSleepMinutes = sessionsToday
+                .filter { it.status != SessionStatus.CANCELLED }
+                .sumOf { session ->
+                    Duration.between(session.startTime, session.endTime).toMinutes().toInt()
+                }
 
             val debt = targetMinutesPerDay - totalSleepMinutes
 

@@ -9,6 +9,8 @@ import androidx.work.WorkerParameters
 import com.gntr.domain.alarm.IAlarmScheduler
 import com.gntr.domain.auth.IAuthManager
 import com.gntr.domain.calendar.ICalendarSyncService
+import com.gntr.domain.calendar.SyncError
+import com.gntr.domain.calendar.SyncResult
 import com.gntr.domain.model.CalendarEvent
 import com.gntr.domain.model.SleepSession
 import com.gntr.domain.repository.ICalendarEventRepository
@@ -16,6 +18,7 @@ import com.gntr.domain.repository.ICalendarSourceRepository
 import com.gntr.domain.repository.ISleepSessionRepository
 import com.gntr.domain.repository.ITransactionRunner
 import com.gntr.domain.service.SleepSessionManager
+import com.gntr.domain.usecase.ReconcileCalendarsUseCase
 import com.gntr.domain.usecase.ReconcileScheduleWithCalendarUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -35,55 +38,55 @@ class CalendarSyncWorker @AssistedInject constructor(
     private val calendarSourceRepository: ICalendarSourceRepository,
     private val authManager: IAuthManager,
     private val reconcileScheduleUseCase: ReconcileScheduleWithCalendarUseCase,
+    private val reconcileCalendarsUseCase: ReconcileCalendarsUseCase,
     private val sleepSessionManager: SleepSessionManager
 ) : CoroutineWorker(appContext, workerParams) {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun doWork(): Result {
-        val account = authManager.getSignedInAccount()
-        if (account == null) {
-            Timber.w("Calendar sync aborted: No signed-in account found.")
-            return Result.failure()
-        }
+        val account = authManager.getSignedInAccount() ?: return Result.failure()
+        val accessToken = authManager.getCalendarAccessToken() ?: return Result.retry()
+        var enabledSources = calendarSourceRepository.getEnabledSources()
 
-        val accessToken = authManager.getCalendarAccessToken()
-        if (accessToken == null) {
-            Timber.w("Calendar sync aborted: Could not silently obtain a Calendar access token. Will retry.")
-            return Result.retry()
-        }
-
-        val enabledSources = calendarSourceRepository.getEnabledSources()
         if (enabledSources.isEmpty()) {
-            Timber.i("Calendar sync skipped: No active calendar sources configured.")
-            return Result.success()
+            reconcileCalendarsUseCase(accessToken)
+            enabledSources = calendarSourceRepository.getEnabledSources()
+            if (enabledSources.isEmpty()) return Result.success()
         }
 
         val zoneId = ZoneId.systemDefault()
         val timeMin = LocalDate.now(zoneId).atStartOfDay(zoneId).toInstant().toEpochMilli()
         val timeMax = timeMin + (7L * 24 * 60 * 60 * 1000)
 
-        val domainCalendarEvents = mutableListOf<CalendarEvent>()
-        var partialFailure = false
+        val successfulSources = mutableListOf<String>()
+        val transientFailedSources = mutableListOf<String>()
+        val permanentlyRevokedSources = mutableListOf<String>()
+        val fetchedCalendarEvents = mutableListOf<CalendarEvent>()
+        var requiresRetry = false
 
         for (source in enabledSources) {
-            try {
-                val eventsResult = calendarSyncService.fetchUpcomingEvents(
-                    accessToken,
-                    source.id,
-                    timeMin,
-                    timeMax
-                )
+            when (val result = calendarSyncService.fetchUpcomingEvents(accessToken, source.id, timeMin, timeMax)) {
+                is SyncResult.Success<*> -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val events = result.data as List<CalendarEvent>
 
-                if (eventsResult.isSuccess) {
-                    val events = eventsResult.getOrNull() ?: emptyList()
-                    domainCalendarEvents.addAll(events)
-                } else {
-                    Timber.w("Sync failed for calendar: ${source.displayName}")
-                    partialFailure = true
+                    fetchedCalendarEvents.addAll(events)
+                    successfulSources.add(source.id)
                 }
-            } catch (e: Exception) {
-                Timber.e(e, "Exception during sync for calendar: ${source.displayName}")
-                partialFailure = true
+                is SyncResult.Failure -> {
+                    when (val error = result.error) {
+                        is SyncError.Transient -> {
+                            Timber.w(error.exception, "Transient network failure for source: ${source.id}")
+                            transientFailedSources.add(source.id)
+                            requiresRetry = true
+                        }
+                        is SyncError.PermanentAuthFailure -> {
+                            Timber.e("Permanent authorization failure for source: ${source.id}. Code: ${error.statusCode}. Revoking.")
+                            permanentlyRevokedSources.add(source.id)
+                            calendarSourceRepository.disableSource(source.id)
+                        }
+                    }
+                }
             }
         }
 
@@ -91,21 +94,38 @@ class CalendarSyncWorker @AssistedInject constructor(
             var sessionsToReschedule = emptyList<SleepSession>()
 
             transactionRunner {
-                val localEventIds = calendarEventRepository.getEventIdsForTimeframe(timeMin, timeMax)
-                val remoteEventIds = domainCalendarEvents.map { it.id }.toSet()
+                val orphanedIdsToClear = mutableListOf<String>()
 
-                val orphanedIds = localEventIds.filterNot { remoteEventIds.contains(it) }
-
-                if (orphanedIds.isNotEmpty()) {
-                    calendarEventRepository.deleteEventsByIds(orphanedIds)
+                for (sourceId in successfulSources) {
+                    val localEventIds = calendarEventRepository.getEventIdsForSourceAndTimeframe(sourceId, timeMin, timeMax)
+                    val remoteEventIds = fetchedCalendarEvents.filter { it.sourceId == sourceId }.map { it.id }.toSet()
+                    orphanedIdsToClear.addAll(localEventIds.filterNot { remoteEventIds.contains(it) })
                 }
 
-                if (domainCalendarEvents.isNotEmpty()) {
-                    calendarEventRepository.insertAll(domainCalendarEvents)
+                for (sourceId in permanentlyRevokedSources) {
+                    val allLocalEventIdsForSource = calendarEventRepository.getEventIdsForSourceAndTimeframe(sourceId, timeMin, timeMax)
+                    orphanedIdsToClear.addAll(allLocalEventIdsForSource)
+                }
+
+                if (orphanedIdsToClear.isNotEmpty()) {
+                    calendarEventRepository.deleteEventsByIds(orphanedIdsToClear)
+                }
+
+                if (fetchedCalendarEvents.isNotEmpty()) {
+                    calendarEventRepository.insertAll(fetchedCalendarEvents)
+                }
+
+                val allEventsForReconciliation = mutableListOf<CalendarEvent>()
+                allEventsForReconciliation.addAll(fetchedCalendarEvents)
+
+                if (transientFailedSources.isNotEmpty()) {
+                    val retainedEvents = calendarEventRepository.getEventsForSourcesSnapshot(transientFailedSources, timeMin, timeMax)
+                    allEventsForReconciliation.addAll(retainedEvents)
                 }
 
                 val localSessions = repository.getSessionsSnapshotForTimeframe(timeMin, timeMax)
-                sessionsToReschedule = reconcileScheduleUseCase(localSessions, domainCalendarEvents)
+
+                sessionsToReschedule = reconcileScheduleUseCase(localSessions, allEventsForReconciliation)
 
                 sessionsToReschedule.forEach { resolvedSession ->
                     repository.updateSession(resolvedSession)
@@ -116,10 +136,10 @@ class CalendarSyncWorker @AssistedInject constructor(
                 sleepSessionManager.updateScheduled(resolvedSession)
             }
 
-            if (partialFailure) Result.retry() else Result.success()
+            if (requiresRetry) Result.retry() else Result.success()
 
         } catch (e: Exception) {
-            Timber.e(e, "Fatal exception occurred during database transaction or collision resolution.")
+            Timber.e(e, "Fatal database transaction exception during synchronization.")
             Result.retry()
         }
     }

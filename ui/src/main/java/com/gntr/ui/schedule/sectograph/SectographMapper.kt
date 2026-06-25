@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import com.gntr.domain.model.CalendarEventDetail
+import com.gntr.domain.model.SessionStatus
 import com.gntr.domain.model.SessionType
 import com.gntr.domain.model.SleepSession
 import com.gntr.ui.theme.CoreSleepColor
@@ -22,7 +23,14 @@ object SectographMapper {
         val outerRadius = 0.8f
 
         for (session in sessions) {
-            val color = if (session.type == SessionType.CORE) CoreSleepColor else NapSleepColor
+            if (session.status == SessionStatus.CANCELLED) continue
+
+            val color = when {
+                session.status == SessionStatus.BLOCKED_BY_EVENT -> Color.Gray.copy(alpha = 0.4f)
+                session.type == SessionType.CORE -> CoreSleepColor
+                else -> NapSleepColor
+            }
+
             val startAngle = calculateAngle(session.startTime)
             val endAngle = calculateAngle(session.endTime)
 

@@ -63,8 +63,8 @@ class ScheduleViewModel @Inject constructor(
 
     val sleepSectors: StateFlow<List<SectographSector>> =
         sleepSessionRepository.getSessionsForTimeframe(
-            startEpochMilli = getTimeframe(startDaysOffset = -1, endDaysOffset = 1).startMilli,
-            endEpochMilli = getTimeframe(startDaysOffset = -1, endDaysOffset = 1).endMilli
+            startEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 0).startMilli,
+            endEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 0).endMilli
         )
             .map { sessions -> SectographMapper.mapSleepSessionsToSectors(sessions) }
             .flowOn(Dispatchers.Default)
@@ -72,8 +72,8 @@ class ScheduleViewModel @Inject constructor(
 
     val calendarSectors: StateFlow<List<SectographSector>> =
         calendarEventRepository.getEventsForTimeframe(
-            startEpochMilli = getTimeframe(startDaysOffset = -1, endDaysOffset = 1).startMilli,
-            endEpochMilli = getTimeframe(startDaysOffset = -1, endDaysOffset = 1).endMilli
+            startEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 0).startMilli,
+            endEpochMilli = getTimeframe(startDaysOffset = 0, endDaysOffset = 0).endMilli
         )
             .map { events -> SectographMapper.mapCalendarEventsToSectors(events) }
             .flowOn(Dispatchers.Default)

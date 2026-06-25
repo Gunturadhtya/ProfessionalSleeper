@@ -3,6 +3,7 @@ package com.gntr.data.repository
 import com.gntr.data.local.dao.CalendarEventDao
 import com.gntr.domain.repository.ICalendarEventRepository
 import com.gntr.data.local.entity.CalendarEventWithSourceEntity
+import com.gntr.data.local.mapper.toDomain
 import com.gntr.data.local.mapper.toEntity
 import com.gntr.domain.model.CalendarEvent
 import com.gntr.domain.model.CalendarEventDetail
@@ -32,6 +33,14 @@ class CalendarEventRepositoryImpl @Inject constructor(
 
     override suspend fun getEventIdsForTimeframe(startEpochMilli: Long, endEpochMilli: Long): List<String> {
         return calendarEventDao.getEventIdsForTimeframe(startEpochMilli, endEpochMilli)
+    }
+
+    override suspend fun getEventIdsForSourceAndTimeframe(sourceId: String, startEpochMilli: Long, endEpochMilli: Long): List<String> {
+        return calendarEventDao.getEventIdsForSourceAndTimeframe(sourceId, startEpochMilli, endEpochMilli)
+    }
+
+    override suspend fun getEventsForSourcesSnapshot(sourceIds: List<String>, startEpochMilli: Long, endEpochMilli: Long): List<CalendarEvent> {
+        return calendarEventDao.getEventsForSourcesSnapshot(sourceIds, startEpochMilli, endEpochMilli).map { it.toDomain() }
     }
 
     override suspend fun deleteEventsByIds(eventIds: List<String>) {

@@ -23,7 +23,7 @@ class ReconcileSessionStatusUseCase @Inject constructor(
 
         snapshot.filter { session ->
             session.endTime.isBefore(now) &&
-                    (session.status == SessionStatus.SCHEDULED)
+                    (session.status == SessionStatus.SCHEDULED || session.status == SessionStatus.BLOCKED_BY_EVENT)
         }.forEach { staleSession ->
             val completedSession = staleSession.copy(status = SessionStatus.COMPLETED)
             sleepSessionManager.updateScheduled(completedSession)

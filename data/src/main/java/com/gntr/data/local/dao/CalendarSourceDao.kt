@@ -24,4 +24,7 @@ interface CalendarSourceDao {
 
     @Query("DELETE FROM calendar_sources WHERE id NOT IN (:validIds)")
     suspend fun deleteOrphanedSources(validIds: List<String>)
+
+    @Query("UPDATE calendar_sources SET isEnabled = 0 WHERE id = :sourceId")
+    suspend fun disableSource(sourceId: String)
 }

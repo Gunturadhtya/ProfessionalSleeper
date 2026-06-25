@@ -2,7 +2,7 @@ package com.gntr.domain.model
 
 enum class SessionStatus {
     SCHEDULED,
-    IN_PROGRESS,
+    BLOCKED_BY_EVENT,
     COMPLETED,
     CANCELLED
 }

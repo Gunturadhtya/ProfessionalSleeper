@@ -2,6 +2,7 @@ package com.gntr.domain.usecase
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.gntr.domain.model.SessionStatus
 import com.gntr.domain.model.SessionType
 import com.gntr.domain.model.SleepSession
 import java.time.ZonedDateTime
@@ -13,18 +14,21 @@ class GetNextCoreSessionUseCase @Inject constructor() {
         val zoneId = now.zone
         val today = now.toLocalDate()
 
+        // Exclude cancelled sessions from targeting evaluations
+        val validSessions = allSessions.filter { it.status != SessionStatus.CANCELLED }
+
         val startOfToday = today.atStartOfDay(zoneId).toInstant().toEpochMilli()
         val endOfToday = today.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli() - 1
         val endOfTomorrow = today.plusDays(2).atStartOfDay(zoneId).toInstant().toEpochMilli() - 1
 
-        val todayFutureCore = allSessions.firstOrNull { session ->
+        val todayFutureCore = validSessions.firstOrNull { session ->
             session.type == SessionType.CORE &&
                     session.endTime.toInstant().toEpochMilli() in startOfToday..endOfToday &&
                     session.endTime.isAfter(now)
         }
         if (todayFutureCore != null) return todayFutureCore
 
-        val nextFutureCore = allSessions
+        val nextFutureCore = validSessions
             .filter { session ->
                 session.type == SessionType.CORE &&
                         session.endTime.toInstant().toEpochMilli() in (endOfToday + 1)..endOfTomorrow
@@ -33,7 +37,7 @@ class GetNextCoreSessionUseCase @Inject constructor() {
 
         if (nextFutureCore != null) return nextFutureCore
 
-        return allSessions
+        return validSessions
             .filter { session ->
                 session.type == SessionType.CORE &&
                         session.endTime.toInstant().toEpochMilli() in startOfToday..endOfToday
