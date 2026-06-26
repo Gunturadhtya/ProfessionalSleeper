@@ -91,8 +91,6 @@ object SectographMapper {
         val outerRadius = 0.55f
 
         return events.flatMap { event ->
-            // Parse the user's Google Calendar color and blend it against the current theme
-            // surface so it remains legible in both light and dark mode.
             val baseColor = try {
                 Color(event.sourceColorHex.toColorInt())
                     .copy(alpha = 0.5f)
@@ -117,12 +115,10 @@ object SectographMapper {
         startAngle: Float,
         endAngle: Float
     ): List<SectographSector> = when {
+        endAngle == startAngle -> emptyList()
         endAngle < startAngle -> listOf(
             SectographSector(color, outerRadius, innerRadius, startAngle, 360f - startAngle),
             SectographSector(color, outerRadius, innerRadius, 0f, endAngle)
-        )
-        endAngle == startAngle -> listOf(
-            SectographSector(color, outerRadius, innerRadius, 0f, 360f)
         )
         else -> listOf(
             SectographSector(color, outerRadius, innerRadius, startAngle, endAngle - startAngle)
@@ -131,7 +127,7 @@ object SectographMapper {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun calculateAngle(time: ZonedDateTime): Float {
-        val totalMinutes = (time.hour * 60) + time.minute
-        return (totalMinutes / 1440f) * 360f
+        val totalSeconds = (time.hour * 3600) + (time.minute * 60) + time.second
+        return (totalSeconds / 86400f) * 360f
     }
 }
