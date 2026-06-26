@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">framework</string>
+    <string name="error_no_google_account">No Google account found on this device. Please add an account in Settings and try again.</string>
 </resources>

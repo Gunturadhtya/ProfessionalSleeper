@@ -1,6 +1,7 @@
 package com.gntr.ui.auth
 
 import android.content.Context
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gntr.ui.R
@@ -34,6 +35,7 @@ class AuthViewModel @Inject constructor(
                     _state.update { it.copy(errorMessage = event.context.getString(R.string.error_calendar_permission)) }
                 }
             }
+
             AuthEvent.ContinueOffline -> {
                 viewModelScope.launch {
                     _authSuccess.emit(null)
@@ -51,11 +53,16 @@ class AuthViewModel @Inject constructor(
             result.onSuccess { account ->
                 _authSuccess.emit(account.email)
             }.onFailure { exception ->
-                if (exception is AuthorizationRequiredException) {
-                    _state.update { it.copy(pendingAuthorization = exception.pendingIntent) }
-                } else {
-                    val message = exception.message ?: context.getString(R.string.error_google_signin_failed)
-                    _state.update { it.copy(errorMessage = message) }
+                when (exception) {
+                    is AuthorizationRequiredException ->
+                        _state.update { it.copy(pendingAuthorization = exception.pendingIntent) }
+
+                    is GetCredentialCancellationException -> {}
+                    else -> {
+                        val message = exception.message
+                            ?: context.getString(R.string.error_google_signin_failed)
+                        _state.update { it.copy(errorMessage = message) }
+                    }
                 }
             }
         }

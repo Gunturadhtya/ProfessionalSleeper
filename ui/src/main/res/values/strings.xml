@@ -63,6 +63,7 @@
     <string name="auth_btn_offline">Use offline without sync</string>
     <string name="error_calendar_permission">Calendar permissions are required to sync naps.</string>
     <string name="error_google_signin_failed">Google Sign-In failed</string>
+    <string name="error_no_google_account">No Google account found on this device. Please add an account in Settings and try again.</string>
 
     <!-- ProfileScreen UI -->
     <string name="profile_title">Profile</string>

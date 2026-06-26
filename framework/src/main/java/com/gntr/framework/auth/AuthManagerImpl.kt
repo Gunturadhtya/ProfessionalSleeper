@@ -6,6 +6,8 @@ import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.api.Scope
@@ -26,6 +28,7 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.net.HttpURLConnection
 import java.net.URL
+import com.gntr.framework.R
 
 class AuthManagerImpl(
     private val context: Context,
@@ -46,7 +49,7 @@ class AuthManagerImpl(
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(clientId)
-                .setAutoSelectEnabled(true)
+                .setAutoSelectEnabled(false)
                 .build()
 
             val request = GetCredentialRequest.Builder()
@@ -106,6 +109,14 @@ class AuthManagerImpl(
                     photoUrl = googleIdCredential.profilePictureUri?.toString()
                 )
             )
+        } catch (e: GetCredentialCancellationException) {
+            Timber.d("Sign-in cancelled by user.")
+            Result.failure(e)
+
+        } catch (e: NoCredentialException) {
+            Timber.w("No Google credentials available on device.")
+            Result.failure(Exception(context.getString(R.string.error_no_google_account)))
+
         } catch (e: Exception) {
             Timber.e(e, "Sign-in or Authorization process failed")
             Result.failure(e)
