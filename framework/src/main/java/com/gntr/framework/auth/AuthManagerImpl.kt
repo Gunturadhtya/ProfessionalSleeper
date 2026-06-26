@@ -26,6 +26,7 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.UUID
 
 class AuthManagerImpl(
     private val context: Context,
@@ -46,7 +47,8 @@ class AuthManagerImpl(
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(clientId)
-                .setAutoSelectEnabled(true)
+                .setAutoSelectEnabled(false)
+                .setNonce(UUID.randomUUID().toString())
                 .build()
 
             val request = GetCredentialRequest.Builder()
@@ -121,7 +123,8 @@ class AuthManagerImpl(
             return@withContext null
         }
 
-        if (!isTokenValid(idToken)) {
+        if (isTokenExpired(idToken)) {
+            Timber.d("Stored ID token is expired; user must re-authenticate.")
             secureTokenManager.clearTokens()
             return@withContext null
         }
